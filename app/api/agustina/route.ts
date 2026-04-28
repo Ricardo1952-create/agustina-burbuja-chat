@@ -1,54 +1,59 @@
 import { NextResponse } from "next/server"
 
 const KNOWLEDGE = `
-LASERTEC INGENIERÍA
+EMPRESA: LASERTEC INGENIERÍA
 
-SERVICIOS:
-- Corte láser de chapa
-- Corte láser de caños
+SERVICIOS PRINCIPALES:
+- Corte láser (chapa y caños)
 - Plegado CNC
-- Soldadura MIG
-- Soldadura TIG
-- Fabricación de piezas y estructuras
+- Soldadura (MIG y TIG)
+- Fabricación de piezas y estructuras metálicas
+
+CORTE LÁSER:
+- Aplica a chapa y caños
+- Espesor máximo: 45 mm (depende del material)
+- Formatos disponibles:
+  - 1500 x 3000 mm
+  - 2500 x 6000 mm
+
+PLEGADO CNC:
+- Servicio disponible para piezas metálicas
+
+SOLDADURA:
+- Tipos disponibles:
+  - MIG
+  - TIG
+  - Láser
+  - Punto
 
 MATERIALES:
-- Principalmente acero al carbono y acero inoxidable
-- Se trabajan todo tipo de materiales, excepto vidrio y cemento
+- Acero al carbono
+- Acero inoxidable
+- Otros materiales (excepto vidrio y cemento)
 
-ESPESORES:
-- Corte láser hasta 45 mm (según material)
-
-FORMATOS:
-- 1500 x 3000 mm
-- 2500 x 6000 mm
-
-PROCESOS:
+PROCESOS ADICIONALES:
 - Pulido
 - Arenado
 - Flapeado
 - Avellanado
 - Biselado
-- Corte laser
 - Esmerilado
 - Galvanizado
 - Mecanizado
 - Pintura
 - Planchado
-- Plegado
 - Conformado
 - Rolado
 - Roscado
-- Soldadura Mig
-- Soldadura Tig
-- Soldadura Laser
-- Soldar a punto
 - Zincado
 
 ENVÍOS:
 - Se realizan envíos, incluyendo al interior
 
-HORARIOS:
-- Lunes a viernes de 8 a 17 hs
+HORARIOS DE ATENCIÓN:
+- Lunes a viernes
+- 08:00 a 12:00
+- 13:00 a 17:00
 `
 
 export async function POST(req: Request) {
@@ -56,11 +61,23 @@ export async function POST(req: Request) {
     const { message } = await req.json()
     const lowerMessage = message.toLowerCase()
 
-    // 🎯 SOLO disparan formulario
+    // ✅ SALUDO
+    const isGreeting =
+      lowerMessage.includes("hola") ||
+      lowerMessage.includes("buenas") ||
+      lowerMessage.includes("hi") ||
+      lowerMessage.includes("hello")
+
+    if (isGreeting) {
+      return NextResponse.json({
+        reply:
+          "Hola, soy el asistente comercial. Puedo ayudarte con consultas o cotizaciones de corte, plegado y soldadura. ¿Qué necesitás?"
+      })
+    }
+
+    // 🎯 INTENCIÓN COMERCIAL
     const isLead =
-      lowerMessage.includes("cotizar") ||
-      lowerMessage.includes("presupuesto") ||
-      lowerMessage.includes("precio")
+      /cotiz|presupuest|precio|cuánto|valor|necesito/i.test(lowerMessage)
 
     const wantsHuman =
       lowerMessage.includes("humano") ||
@@ -75,7 +92,7 @@ Perfecto. Completá el formulario con tu empresa, nombre y qué necesitás, y un
       })
     }
 
-    // 🧠 RESPUESTA NORMAL (CONSULTAS)
+    // 🧠 RESPUESTA CON IA CONTROLADA
     const response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: {
@@ -86,20 +103,31 @@ Perfecto. Completá el formulario con tu empresa, nombre y qué necesitás, y un
         model: "gpt-4o-mini",
         input: `Sos Agustina, asistente comercial de LASERTEC.
 
-Usá SOLO esta información:
+BASE DE CONOCIMIENTO:
 ${KNOWLEDGE}
 
 REGLAS:
-- Respondé corto, claro y directo
-- No inventes datos
-- No saludes innecesariamente
-- No redirijas a formulario en consultas
+- Usar únicamente la información de la base
+- No inventar datos
+- No agregar conocimiento externo
 
-- Si la información está → responder claro
-- Si NO tenés información:
-"Podrías darme un poco más de detalle así te ayudo mejor?"
+COMPORTAMIENTO:
+- Responder claro, directo y breve
+- No saludar
+- Adaptarse a preguntas poco precisas del usuario
 
-Pregunta: ${message}`
+CRITERIO:
+- Si la pregunta es general pero coincide con algo de la base → responder igual
+- Ejemplo: "¿Qué espesor cortan?" → usar CORTE LÁSER
+- Ejemplo: "¿Qué soldaduras hacen?" → usar SOLDADURA
+- Ejemplo: "¿Qué materiales trabajan?" → usar MATERIALES
+
+SI NO HAY INFORMACIÓN:
+Responder EXACTAMENTE:
+"No tengo esa información en este momento. Si querés, podés darme más detalles o completar el formulario y un asesor te responde."
+
+Pregunta:
+${message}`
       })
     })
 
@@ -107,7 +135,7 @@ Pregunta: ${message}`
 
     const reply =
       data.output?.[0]?.content?.[0]?.text ||
-      "Podrías darme un poco más de detalle así te ayudo mejor?"
+      "No tengo esa información en este momento. Si querés, podés darme más detalles o completar el formulario y un asesor te responde."
 
     return NextResponse.json({ reply })
 
