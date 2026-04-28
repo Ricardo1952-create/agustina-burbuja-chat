@@ -92,7 +92,7 @@ Perfecto. Completá el formulario con tu empresa, nombre y qué necesitás, y un
       })
     }
 
-    // 🧠 RESPUESTA CON IA (CORRECTA)
+    // 🧠 RESPUESTA CON IA (CON INTERPRETACIÓN CORRECTA)
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -112,18 +112,17 @@ Usás únicamente esta base de conocimiento:
 ${KNOWLEDGE}
 
 REGLAS:
-- No inventar datos
-- No usar conocimiento externo
-- Responder claro, directo y breve
-- Adaptarte a preguntas poco precisas
+- Usar únicamente la base de conocimiento
+- No inventar datos externos
+- Responder claro y directo
+- Interpretar la intención del usuario aunque no sea preciso
 
 CRITERIO:
-- Si la pregunta es general pero coincide con algo de la base → responder igual
-- Ejemplo: "¿Qué espesor cortan?" → usar CORTE LÁSER
-- Ejemplo: "¿Qué soldaduras hacen?" → usar SOLDADURA
-- Ejemplo: "¿Qué materiales trabajan?" → usar MATERIALES
-- Si el usuario pregunta por "espesor" o "espesores", aunque no aclare proceso → responder:
-"Corte láser hasta 45 mm (depende del material)."
+- Si la pregunta coincide con un concepto de la base, responder igual aunque no sea exacta
+- Ejemplos de interpretación:
+  - "espesor", "espesores", "qué trabajan" → usar CORTE LÁSER
+  - "soldadura" → usar SOLDADURA
+  - "materiales" → usar MATERIALES
 
 SI NO HAY INFORMACIÓN:
 Responder EXACTAMENTE:
