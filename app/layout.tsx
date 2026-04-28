@@ -17,7 +17,7 @@ export default function RootLayout({
         {children}
 
         {/* 👉 CARGA CORRECTA DE LA BURBUJA */}
-        <Script src="/bubble.js" strategy="afterInteractive" />
+
       </body>
     </html>
   );
