@@ -92,7 +92,7 @@ Perfecto. Completá el formulario con tu empresa, nombre y qué necesitás, y un
       })
     }
 
-    // 🧠 RESPUESTA CON IA (CORREGIDA)
+    // 🧠 RESPUESTA CON IA (CORRECTA)
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -122,6 +122,8 @@ CRITERIO:
 - Ejemplo: "¿Qué espesor cortan?" → usar CORTE LÁSER
 - Ejemplo: "¿Qué soldaduras hacen?" → usar SOLDADURA
 - Ejemplo: "¿Qué materiales trabajan?" → usar MATERIALES
+- Si el usuario pregunta por "espesor" o "espesores", aunque no aclare proceso → responder:
+"Corte láser hasta 45 mm (depende del material)."
 
 SI NO HAY INFORMACIÓN:
 Responder EXACTAMENTE:
