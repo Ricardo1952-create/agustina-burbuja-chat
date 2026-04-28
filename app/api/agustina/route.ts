@@ -93,7 +93,7 @@ Perfecto. Completá el formulario con tu empresa, nombre y qué necesitás, y un
     }
 
     // 🧠 RESPUESTA CON IA (CORREGIDA)
-    const response = await fetch("https://api.openai.com/v1/responses", {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -101,6 +101,7 @@ Perfecto. Completá el formulario con tu empresa, nombre y qué necesitás, y un
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
+        temperature: 0,
         messages: [
           {
             role: "system",
@@ -138,7 +139,7 @@ Responder EXACTAMENTE:
     const data = await response.json()
 
     const reply =
-      data.output?.[0]?.content?.[0]?.text ||
+      data.choices?.[0]?.message?.content ||
       "No tengo esa información en este momento. Si querés, podés darme más detalles o completar el formulario y un asesor te responde."
 
     return NextResponse.json({ reply })
