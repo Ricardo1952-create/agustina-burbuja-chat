@@ -92,7 +92,7 @@ Perfecto. Completá el formulario con tu empresa, nombre y qué necesitás, y un
       })
     }
 
-    // 🧠 RESPUESTA CON IA CONTROLADA
+    // 🧠 RESPUESTA CON IA (CORREGIDA)
     const response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: {
@@ -101,20 +101,20 @@ Perfecto. Completá el formulario con tu empresa, nombre y qué necesitás, y un
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
-        input: `Sos Agustina, asistente comercial de LASERTEC.
+        messages: [
+          {
+            role: "system",
+            content: `Sos Agustina, asistente comercial de LASERTEC.
 
-BASE DE CONOCIMIENTO:
+Usás únicamente esta base de conocimiento:
+
 ${KNOWLEDGE}
 
 REGLAS:
-- Usar únicamente la información de la base
 - No inventar datos
-- No agregar conocimiento externo
-
-COMPORTAMIENTO:
+- No usar conocimiento externo
 - Responder claro, directo y breve
-- No saludar
-- Adaptarse a preguntas poco precisas del usuario
+- Adaptarte a preguntas poco precisas
 
 CRITERIO:
 - Si la pregunta es general pero coincide con algo de la base → responder igual
@@ -125,9 +125,13 @@ CRITERIO:
 SI NO HAY INFORMACIÓN:
 Responder EXACTAMENTE:
 "No tengo esa información en este momento. Si querés, podés darme más detalles o completar el formulario y un asesor te responde."
-
-Pregunta:
-${message}`
+`
+          },
+          {
+            role: "user",
+            content: message
+          }
+        ]
       })
     })
 
