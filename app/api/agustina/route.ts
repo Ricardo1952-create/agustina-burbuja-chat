@@ -92,7 +92,32 @@ Perfecto. Completá el formulario con tu empresa, nombre y qué necesitás, y un
       })
     }
 
-    // 🧠 RESPUESTA CON IA (CON INTERPRETACIÓN CORRECTA)
+    // 🧠 RESPUESTAS DIRECTAS (CRÍTICAS)
+    if (lowerMessage.includes("espesor")) {
+      return NextResponse.json({
+        reply: "Corte láser hasta 45 mm (depende del material)."
+      })
+    }
+
+    if (lowerMessage.includes("horario") || lowerMessage.includes("hora")) {
+      return NextResponse.json({
+        reply: "Lunes a viernes de 8 a 12 y de 13 a 17 hs."
+      })
+    }
+
+    if (lowerMessage.includes("soldadura")) {
+      return NextResponse.json({
+        reply: "Trabajamos con soldadura MIG, TIG, láser y a punto."
+      })
+    }
+
+    if (lowerMessage.includes("material")) {
+      return NextResponse.json({
+        reply: "Trabajamos principalmente acero al carbono y acero inoxidable."
+      })
+    }
+
+    // 🧠 IA PARA CONSULTAS MÁS ABIERTAS
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -112,22 +137,11 @@ Usás únicamente esta base de conocimiento:
 ${KNOWLEDGE}
 
 REGLAS:
-- Usar únicamente la base de conocimiento
-- No inventar datos externos
+- No inventar datos
+- No usar conocimiento externo
 - Responder claro y directo
-- Interpretar la intención del usuario aunque no sea preciso
 
-CRITERIO:
-- Si la pregunta coincide con un concepto de la base, responder igual aunque no sea exacta
-- Ejemplos de interpretación:
-  - "espesor", "espesores", "qué trabajan" → usar CORTE LÁSER
-  - "soldadura" → usar SOLDADURA
-  - "materiales" → usar MATERIALES
-
-SI NO HAY INFORMACIÓN:
-Responder EXACTAMENTE:
-"No tengo esa información en este momento. Si querés, podés darme más detalles o completar el formulario y un asesor te responde."
-`
+Si no hay información suficiente, pedir más detalle.`
           },
           {
             role: "user",
@@ -141,7 +155,7 @@ Responder EXACTAMENTE:
 
     const reply =
       data.choices?.[0]?.message?.content ||
-      "No tengo esa información en este momento. Si querés, podés darme más detalles o completar el formulario y un asesor te responde."
+      "Podrías darme un poco más de detalle así te ayudo mejor?"
 
     return NextResponse.json({ reply })
 
