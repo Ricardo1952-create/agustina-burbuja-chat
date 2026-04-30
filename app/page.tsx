@@ -21,7 +21,7 @@ export default function Page() {
     setInput("");
 
     try {
-      const res = await fetch("/api/chat", {
+      const res = await fetch("/api/agustina", { // 🔥 CAMBIO ACÁ
         method: "POST",
         headers: {
           "Content-Type": "application/json",
