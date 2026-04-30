@@ -10,43 +10,56 @@ export async function POST(req: Request) {
     const last =
       messages[messages.length - 1]?.content?.toLowerCase() || "";
 
-    // 🔥 DETECTAR INTENCIÓN
+    // 🔥 DETECCIÓN DE INTENCIÓN
     const intencion =
       last.includes("cotizar") ||
       last.includes("presupuesto") ||
       last.includes("precio") ||
-      last.includes("trabajo");
+      last.includes("trabajo") ||
+      last.includes("cortar") ||
+      last.includes("soldar") ||
+      last.includes("plegar") ||
+      last.includes("fabricar") ||
+      last.includes("necesito") ||
+      last.includes("quiero");
 
-    // 👉 PASO 1: activar flujo
-    if (intencion && messages.length < 4) {
+    // 🔥 DISPARA FORMULARIO VISUAL
+    if (intencion) {
       return new Response(
         JSON.stringify({
-          reply:
-            "Perfecto 👍 Para cotizar, decime tu nombre, teléfono y qué necesitás hacer.",
+          reply: "__FORM__",
         }),
         { headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // 👉 PASO 2: capturar datos y enviar
-    if (messages.length >= 4) {
-      await fetch(WEBHOOK, {
-        method: "POST",
-        body: JSON.stringify({
-          mensaje: last,
-        }),
-      });
+    // 🔥 SI RECIBE DATOS DEL FORM → GUARDA EN GOOGLE SHEETS
+    try {
+      const posibleJSON = JSON.parse(last);
 
-      return new Response(
-        JSON.stringify({
-          reply:
-            "Gracias 👍 Ya registramos tu pedido. Un asesor te va a contactar a la brevedad.",
-        }),
-        { headers: { "Content-Type": "application/json" } }
-      );
+      if (
+        posibleJSON.nombre &&
+        posibleJSON.telefono &&
+        posibleJSON.detalle
+      ) {
+        await fetch(WEBHOOK, {
+          method: "POST",
+          body: JSON.stringify(posibleJSON),
+        });
+
+        return new Response(
+          JSON.stringify({
+            reply:
+              "Perfecto 👍 Ya registramos tu solicitud. Un asesor te va a contactar a la brevedad.",
+          }),
+          { headers: { "Content-Type": "application/json" } }
+        );
+      }
+    } catch (e) {
+      // no era JSON, seguimos normal
     }
 
-    // 👉 RESPUESTA NORMAL
+    // 🤖 RESPUESTA NORMAL
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY!,
     });
