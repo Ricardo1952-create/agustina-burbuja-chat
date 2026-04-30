@@ -33,10 +33,13 @@ export default function Page() {
 
       // 🔥 CLAVE: detectar señal del backend
       if (data.reply === "__FORMULARIO__") {
-        // 👉 Esto es solo prueba (no rompe nada)
-        alert("Se activa el formulario (igual que antes)");
 
-        // 👉 Mensaje visible en chat (opcional)
+        // 👉 ABRE TU FORMULARIO REAL
+        window.open(
+          "https://docs.google.com/forms/d/e/1FAIpQLSdL7TEiU-Uf1lFSIqky_SZgPjzSkHYSPkINTzU6JA9dRFGaug/viewform",
+          "_blank"
+        );
+
         setMessages([
           ...newMessages,
           {
