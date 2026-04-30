@@ -24,3 +24,9 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* 🔧 FIX PARA CELULAR (input del chat) */
+input, textarea {
+  color: #000 !important;
+  background-color: #fff !important;
+}
