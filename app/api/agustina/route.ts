@@ -1,18 +1,24 @@
-import { NextResponse } from "next/server"
+import OpenAI from "openai";
 
-export async function POST(req: Request) {
+export async function POST(req) {
   try {
-    const { message } = await req.json()
+    const { messages } = await req.json();
 
-    return NextResponse.json({
-      reply: "PRUEBA ROUTE TS ACTIVO"
-    })
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
 
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages,
+    });
+
+    return Response.json({
+      reply: completion.choices[0].message.content,
+    });
   } catch (error) {
-    console.error(error)
-
-    return NextResponse.json({
-      reply: "ERROR"
-    })
+    return Response.json({
+      reply: "Error en el servidor",
+    });
   }
 }
