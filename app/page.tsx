@@ -21,7 +21,7 @@ export default function Page() {
     setInput("");
 
     try {
-      const res = await fetch("/api/agustina", { // 🔥 CAMBIO ACÁ
+      const res = await fetch("/api/agustina", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -31,11 +31,31 @@ export default function Page() {
 
       const data = await res.json();
 
+      // 🔥 CLAVE: detectar señal del backend
+      if (data.reply === "__FORMULARIO__") {
+        // 👉 Esto es solo prueba (no rompe nada)
+        alert("Se activa el formulario (igual que antes)");
+
+        // 👉 Mensaje visible en chat (opcional)
+        setMessages([
+          ...newMessages,
+          {
+            role: "assistant",
+            content:
+              "Perfecto 👍 Te voy a pedir unos datos para que un asesor te contacte.",
+          },
+        ]);
+
+        return;
+      }
+
+      // 👉 Respuesta normal
       setMessages([
         ...newMessages,
         {
           role: "assistant",
-          content: data.reply || data.message || "Hubo un problema al responder",
+          content:
+            data.reply || data.message || "Hubo un problema al responder",
         },
       ]);
     } catch (error) {
