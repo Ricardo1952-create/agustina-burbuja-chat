@@ -10,28 +10,26 @@ export async function POST(req: Request) {
     const last =
       messages[messages.length - 1]?.content?.toLowerCase() || "";
 
-    // 🔥 DETECTAR INTENCIÓN REAL
+    // 🔥 DETECTAR INTENCIÓN
     const intencion =
       last.includes("cotizar") ||
       last.includes("presupuesto") ||
       last.includes("precio") ||
-      last.includes("trabajo") ||
-      last.includes("necesito") ||
-      last.includes("quiero");
+      last.includes("trabajo");
 
-    // 🔥 SI HAY INTENCIÓN → ACTIVAR FLUJO
-    if (intencion) {
+    // 👉 PASO 1: activar flujo
+    if (intencion && messages.length < 4) {
       return new Response(
         JSON.stringify({
           reply:
-            "Perfecto 👍 Para avanzar, pasame tu nombre, teléfono y qué necesitás hacer.",
+            "Perfecto 👍 Para cotizar, decime tu nombre, teléfono y qué necesitás hacer.",
         }),
         { headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // 🔥 SI YA PASÓ DATOS → ENVIAR A GOOGLE SHEETS
-    if (last.length > 10 && last.match(/\d{6,}/)) {
+    // 👉 PASO 2: capturar datos y enviar
+    if (messages.length >= 4) {
       await fetch(WEBHOOK, {
         method: "POST",
         body: JSON.stringify({
@@ -42,13 +40,13 @@ export async function POST(req: Request) {
       return new Response(
         JSON.stringify({
           reply:
-            "Perfecto 👍 Ya recibimos tus datos. Un asesor te va a contactar a la brevedad.",
+            "Gracias 👍 Ya registramos tu pedido. Un asesor te va a contactar a la brevedad.",
         }),
         { headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // 🤖 RESPUESTA NORMAL
+    // 👉 RESPUESTA NORMAL
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY!,
     });
