@@ -4,44 +4,69 @@ export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
 
-    const lastUserMessage =
+    const last =
       messages[messages.length - 1]?.content?.toLowerCase() || "";
 
-    // 🔍 INTENCIÓN FUERTE (compra real)
-    const intencionFuerte =
-      lastUserMessage.includes("cotizar") ||
-      lastUserMessage.includes("presupuesto") ||
-      lastUserMessage.includes("precio") ||
-      lastUserMessage.includes("cuánto sale") ||
-      lastUserMessage.includes("cuanto sale") ||
-      lastUserMessage.includes("hacer un trabajo") ||
-      lastUserMessage.includes("necesito fabricar") ||
-      lastUserMessage.includes("necesito cortar") ||
-      lastUserMessage.includes("quiero hacer un trabajo");
+    // 🔥 LISTA DE ACCIONES (lo que indica trabajo real)
+    const acciones = [
+      "cortar",
+      "plegar",
+      "soldar",
+      "fabricar",
+      "hacer",
+      "necesito",
+      "quiero",
+      "trabajo",
+    ];
 
-    // 🔍 CONSULTA TÉCNICA
-    const consultaTecnica =
-      lastUserMessage.includes("espesor") ||
-      lastUserMessage.includes("material") ||
-      lastUserMessage.includes("trabajan") ||
-      lastUserMessage.includes("pueden") ||
-      lastUserMessage.includes("hacen") ||
-      lastUserMessage.includes("capacidad") ||
-      lastUserMessage.includes("qué tipo") ||
-      lastUserMessage.includes("que tipo");
+    // 🔥 PALABRAS DE COMPRA
+    const compra = [
+      "cotizar",
+      "presupuesto",
+      "precio",
+      "cuanto sale",
+      "cuánto sale",
+    ];
 
-    // 🎯 DECISIÓN
-    if (intencionFuerte && !consultaTecnica) {
+    // 🔍 CONSULTA PURA (no compra)
+    const consulta = [
+      "espesor",
+      "material",
+      "trabajan",
+      "pueden",
+      "hacen",
+      "capacidad",
+      "tipo",
+    ];
+
+    // 🔍 DETECCIÓN
+    const tieneAccion = acciones.some(p => last.includes(p));
+    const quiereComprar = compra.some(p => last.includes(p));
+    const esConsulta = consulta.some(p => last.includes(p));
+
+    // 🎯 REGLA FUERTE (esto es lo que te faltaba)
+    // 👉 si hay ACCIÓN + (compra o intención) → FORMULARIO
+    if (tieneAccion && !esConsulta) {
       return new Response(
         JSON.stringify({
           reply:
-            "Perfecto 👍 Para avanzar con el presupuesto, completá este formulario y un asesor te va a contactar a la brevedad:\n\n👉 [LINK_FORMULARIO]",
+            "Perfecto 👍 Para avanzar con el trabajo, completá este formulario y un asesor te va a contactar a la brevedad:\n\n👉 [LINK_FORMULARIO]",
         }),
         { headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // 🤖 RESPUESTA NORMAL CON IA
+    if (quiereComprar && !esConsulta) {
+      return new Response(
+        JSON.stringify({
+          reply:
+            "Perfecto 👍 Para cotizar, completá este formulario y un asesor te va a contactar a la brevedad:\n\n👉 [LINK_FORMULARIO]",
+        }),
+        { headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // 🤖 RESPUESTA NORMAL (consultas)
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY!,
     });
@@ -52,18 +77,12 @@ export async function POST(req: Request) {
         {
           role: "system",
           content: `
-Sos Agustina, asistente comercial de Lasertec.
+Sos Agustina, asistente de Lasertec.
 
-Tu función es:
-- responder consultas técnicas
-- ayudar al usuario
-- detectar oportunidades comerciales
-
-Reglas:
-- Si el usuario consulta información → respondé claro y profesional
-- Si muestra intención de trabajo → guiá hacia cotización
-- No seas insistente ni agresiva
-- Mantené tono profesional y directo
+- Respondés consultas técnicas
+- Ayudás al usuario
+- Si no hay intención clara, informás
+- No fuerces venta
           `,
         },
         ...messages,
