@@ -7,66 +7,29 @@ export async function POST(req: Request) {
     const last =
       messages[messages.length - 1]?.content?.toLowerCase() || "";
 
-    // 🔥 LISTA DE ACCIONES (lo que indica trabajo real)
-    const acciones = [
-      "cortar",
-      "plegar",
-      "soldar",
-      "fabricar",
-      "hacer",
-      "necesito",
-      "quiero",
-      "trabajo",
-    ];
+    // 🎯 DETECCIÓN SIMPLE Y ESTABLE (como antes)
+    const intencionTrabajo =
+      last.includes("cotizar") ||
+      last.includes("presupuesto") ||
+      last.includes("precio") ||
+      last.includes("trabajo") ||
+      last.includes("cortar") ||
+      last.includes("soldar") ||
+      last.includes("plegar") ||
+      last.includes("fabricar");
 
-    // 🔥 PALABRAS DE COMPRA
-    const compra = [
-      "cotizar",
-      "presupuesto",
-      "precio",
-      "cuanto sale",
-      "cuánto sale",
-    ];
-
-    // 🔍 CONSULTA PURA (no compra)
-    const consulta = [
-      "espesor",
-      "material",
-      "trabajan",
-      "pueden",
-      "hacen",
-      "capacidad",
-      "tipo",
-    ];
-
-    // 🔍 DETECCIÓN
-    const tieneAccion = acciones.some(p => last.includes(p));
-    const quiereComprar = compra.some(p => last.includes(p));
-    const esConsulta = consulta.some(p => last.includes(p));
-
-    // 🎯 REGLA FUERTE (esto es lo que te faltaba)
-    // 👉 si hay ACCIÓN + (compra o intención) → FORMULARIO
-    if (tieneAccion && !esConsulta) {
+    // 🔥 SI HAY INTENCIÓN → ACTIVAR FLUJO (sin link, sin complicar)
+    if (intencionTrabajo) {
       return new Response(
         JSON.stringify({
           reply:
-            "Perfecto 👍 Para avanzar con el trabajo, completá este formulario y un asesor te va a contactar a la brevedad:\n\n👉 [LINK_FORMULARIO]",
+            "Perfecto 👍 Para avanzar con el trabajo, te voy a pedir unos datos así un asesor puede contactarte.",
         }),
         { headers: { "Content-Type": "application/json" } }
       );
     }
 
-    if (quiereComprar && !esConsulta) {
-      return new Response(
-        JSON.stringify({
-          reply:
-            "Perfecto 👍 Para cotizar, completá este formulario y un asesor te va a contactar a la brevedad:\n\n👉 [LINK_FORMULARIO]",
-        }),
-        { headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    // 🤖 RESPUESTA NORMAL (consultas)
+    // 🤖 SI NO → RESPUESTA NORMAL
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY!,
     });
@@ -77,12 +40,13 @@ export async function POST(req: Request) {
         {
           role: "system",
           content: `
-Sos Agustina, asistente de Lasertec.
+Sos Agustina, asistente comercial de Lasertec.
 
 - Respondés consultas técnicas
 - Ayudás al usuario
-- Si no hay intención clara, informás
-- No fuerces venta
+- Si detectás interés, guiás la conversación
+- No seas insistente
+- Respondé claro y profesional
           `,
         },
         ...messages,
