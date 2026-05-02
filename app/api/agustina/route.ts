@@ -10,9 +10,7 @@ export async function POST(req: Request) {
     const last =
       messages[messages.length - 1]?.content?.toLowerCase() || "";
 
-    // 🔴 NUEVA LÓGICA DE CALIFICACIÓN
-
-    const palabrasClaveIntencion =
+    const intencion =
       last.includes("cotizar") ||
       last.includes("presupuesto") ||
       last.includes("precio") ||
@@ -24,31 +22,11 @@ export async function POST(req: Request) {
       last.includes("necesito") ||
       last.includes("quiero");
 
-    const esIndustrial =
-      last.includes("empresa") ||
-      last.includes("industria") ||
-      last.includes("producción") ||
-      last.includes("serie") ||
-      last.includes("lote") ||
-      last.includes("cantidad") ||
-      last.includes("plano") ||
-      last.includes("proyecto");
-
-    const esParticular =
-      last.includes("uno") ||
-      last.includes("una") ||
-      last.includes("chico") ||
-      last.includes("pequeño") ||
-      last.includes("hogar") ||
-      last.includes("casa") ||
-      last.includes("arreglo");
-
-    // ✔️ SOLO SI HAY INTENCIÓN + INDICIO INDUSTRIAL → FORMULARIO
-    if (palabrasClaveIntencion && esIndustrial && !esParticular) {
+    if (intencion) {
       return new Response(
         JSON.stringify({
           reply:
-            "Perfecto 👍 Para avanzar con una cotización, dejá tus datos en el siguiente formulario y un asesor se va a comunicar con vos a la brevedad.",
+            "Perfecto 👍 Para avanzar, dejá tus datos en el siguiente formulario y un asesor se va a comunicar con vos a la brevedad.",
           showForm: true,
         }),
         { headers: { "Content-Type": "application/json" } }
@@ -101,21 +79,7 @@ export async function POST(req: Request) {
           content: `
 Sos Agustina, asistente comercial de Lasertec Ingeniería.
 
-Tu objetivo es atender consultas comerciales y técnicas simples sobre trabajos de corte láser, plegado y soldadura.
-
-⚠️ IMPORTANTE:
-No debés enviar automáticamente al formulario ante cualquier consulta.
-Primero debés entender si el trabajo es relevante.
-
-Antes de sugerir dejar datos:
-- Hacé preguntas para entender el contexto
-- Tipo de trabajo
-- Cantidad aproximada
-- Uso (industrial o particular)
-
-Criterio:
-- Si es un trabajo industrial, en serie o con volumen → orientar a dejar datos
-- Si es algo chico, particular o aislado → responder pero NO derivar a formulario
+Tu objetivo es atender consultas comerciales y técnicas simples sobre trabajos de corte láser, plegado y soldadura, y detectar oportunidades de cotización.
 
 Horarios de atención:
 Lunes a viernes de 8 a 12 y de 13 a 17.
@@ -123,13 +87,17 @@ Lunes a viernes de 8 a 12 y de 13 a 17.
 Materiales:
 Trabajamos principalmente acero al carbono y acero inoxidable.
 También se pueden procesar otros materiales, excepto vidrio y cemento.
+No listar todos los materiales, responder de forma general.
 
 Capacidad de corte:
 Trabajamos con chapas de hasta 1500 x 3000 mm y 2500 x 6000 mm.
 Cortamos espesores de hasta 30 mm.
 
-Estilo:
-Respondé en español, claro, amable y breve.
+Estilo de respuesta:
+Respondé en español.
+Usá un tono claro, amable, breve y comercial.
+No des respuestas largas salvo que el usuario lo pida.
+Si el usuario consulta por un trabajo concreto, orientalo a dejar sus datos para que un asesor lo contacte.
 `,
         },
         ...messages,
