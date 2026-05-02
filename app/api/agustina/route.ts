@@ -10,7 +10,6 @@ export async function POST(req: Request) {
     const last =
       messages[messages.length - 1]?.content?.toLowerCase() || "";
 
-    // 🔥 DETECCIÓN DE INTENCIÓN
     const intencion =
       last.includes("cotizar") ||
       last.includes("presupuesto") ||
@@ -23,7 +22,6 @@ export async function POST(req: Request) {
       last.includes("necesito") ||
       last.includes("quiero");
 
-    // 🔥 RESPUESTA + FORMULARIO
     if (intencion) {
       return new Response(
         JSON.stringify({
@@ -35,7 +33,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // 🔥 SI RECIBE DATOS DEL FORM → GUARDA EN GOOGLE SHEETS
     try {
       const posibleJSON = JSON.parse(last);
 
@@ -49,7 +46,13 @@ export async function POST(req: Request) {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(posibleJSON),
+          body: JSON.stringify({
+            nombre: posibleJSON.nombre || "",
+            telefono: posibleJSON.telefono || "",
+            email: "",
+            empresa: "",
+            descripcion: posibleJSON.detalle || "",
+          }),
         });
 
         return new Response(
@@ -64,7 +67,6 @@ export async function POST(req: Request) {
       // no era JSON, seguimos normal
     }
 
-    // 🤖 RESPUESTA NORMAL
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY!,
     });
