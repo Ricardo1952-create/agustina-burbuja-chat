@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 
 const WEBHOOK =
-  "https://script.google.com/macros/s/AKfycby_XWvZnpcELHWI8L2cm5-KED5EIGDlzMG93EDS1NH-g33Ik4JsqlmsuNdGHJsrzlsorA/exec";
+  "https://script.google.com/macros/s/AKfycbzP9DkhB-y7yfA6zUXomXyKckQBHShSPjj4ommedwR-7Twf8RZgKNS8kfT-JRj2_kzP7A/exec";
 
 export async function POST(req: Request) {
   try {
@@ -47,7 +47,7 @@ export async function POST(req: Request) {
         await fetch(WEBHOOK, {
           method: "POST",
           headers: {
-            "Content-Type": "application/json", // ✅ ESTE ES EL FIX
+            "Content-Type": "application/json",
           },
           body: JSON.stringify(posibleJSON),
         });
