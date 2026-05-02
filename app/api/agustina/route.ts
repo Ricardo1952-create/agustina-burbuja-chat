@@ -23,11 +23,13 @@ export async function POST(req: Request) {
       last.includes("necesito") ||
       last.includes("quiero");
 
-    // 🔥 DISPARA FORMULARIO VISUAL
+    // 🔥 RESPUESTA + FORMULARIO (MEJORADA)
     if (intencion) {
       return new Response(
         JSON.stringify({
-          reply: "__FORM__",
+          reply:
+            "Perfecto 👍 Para avanzar, dejá tus datos en el siguiente formulario y un asesor se va a comunicar con vos a la brevedad.",
+          showForm: true,
         }),
         { headers: { "Content-Type": "application/json" } }
       );
@@ -50,7 +52,7 @@ export async function POST(req: Request) {
         return new Response(
           JSON.stringify({
             reply:
-              "Perfecto 👍 Ya registramos tu solicitud. Un asesor te va a contactar a la brevedad.",
+              "Perfecto 👍 Ya registramos tu solicitud. Un asesor se va a comunicar con vos a la brevedad.",
           }),
           { headers: { "Content-Type": "application/json" } }
         );
@@ -80,7 +82,7 @@ Lunes a viernes de 8 a 12 y de 13 a 17.
 Materiales:
 Trabajamos principalmente acero al carbono y acero inoxidable.
 También se pueden procesar otros materiales, excepto vidrio y cemento.
-Cuando te pregunten por materiales, no hagas una lista larga. Respondé de forma simple y general.
+No listar todos los materiales, responder de forma general.
 
 Capacidad de corte:
 Trabajamos con chapas de hasta 1500 x 3000 mm y 2500 x 6000 mm.
