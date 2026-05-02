@@ -37,7 +37,6 @@ export default function Page() {
 
     const data = await res.json();
 
-    // 🔥 NUEVA LÓGICA FORMULARIO
     if (data.showForm) {
       setMessages([
         ...newMessages,
@@ -51,7 +50,6 @@ export default function Page() {
       return;
     }
 
-    // 🔁 RESPUESTA NORMAL
     setMessages([
       ...newMessages,
       {
@@ -101,26 +99,28 @@ export default function Page() {
         boxShadow: "0 0 10px rgba(0,0,0,0.1)",
       }}
     >
+      {/* CHAT SIEMPRE VISIBLE */}
+      <div
+        style={{
+          height: 300,
+          overflowY: "auto",
+          border: "1px solid #ddd",
+          padding: 10,
+          borderRadius: 6,
+          marginBottom: 10,
+        }}
+      >
+        {messages.map((m, i) => (
+          <div key={i} style={{ marginBottom: 8 }}>
+            <b>{m.role === "user" ? "Vos" : "Agustina"}:</b>{" "}
+            {m.content}
+          </div>
+        ))}
+      </div>
+
+      {/* INPUT SOLO SI NO HAY FORM */}
       {!mostrarFormulario && (
         <>
-          <div
-            style={{
-              height: 300,
-              overflowY: "auto",
-              border: "1px solid #ddd",
-              padding: 10,
-              borderRadius: 6,
-              marginBottom: 10,
-            }}
-          >
-            {messages.map((m, i) => (
-              <div key={i} style={{ marginBottom: 8 }}>
-                <b>{m.role === "user" ? "Vos" : "Agustina"}:</b>{" "}
-                {m.content}
-              </div>
-            ))}
-          </div>
-
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -151,8 +151,9 @@ export default function Page() {
         </>
       )}
 
+      {/* FORMULARIO ABAJO */}
       {mostrarFormulario && (
-        <div>
+        <div style={{ marginTop: 15 }}>
           <h4>Solicitud de contacto</h4>
 
           <input
