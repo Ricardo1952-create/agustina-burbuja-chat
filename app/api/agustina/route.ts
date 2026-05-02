@@ -23,7 +23,7 @@ export async function POST(req: Request) {
       last.includes("necesito") ||
       last.includes("quiero");
 
-    // 🔥 RESPUESTA + FORMULARIO (MEJORADA)
+    // 🔥 RESPUESTA + FORMULARIO
     if (intencion) {
       return new Response(
         JSON.stringify({
@@ -46,6 +46,9 @@ export async function POST(req: Request) {
       ) {
         await fetch(WEBHOOK, {
           method: "POST",
+          headers: {
+            "Content-Type": "application/json", // ✅ ESTE ES EL FIX
+          },
           body: JSON.stringify(posibleJSON),
         });
 
