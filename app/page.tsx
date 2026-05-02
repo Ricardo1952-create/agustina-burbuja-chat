@@ -37,11 +37,21 @@ export default function Page() {
 
     const data = await res.json();
 
-    if (data.reply === "__FORM__") {
+    // 🔥 NUEVA LÓGICA FORMULARIO
+    if (data.showForm) {
+      setMessages([
+        ...newMessages,
+        {
+          role: "assistant",
+          content: data.reply,
+        },
+      ]);
+
       setMostrarFormulario(true);
       return;
     }
 
+    // 🔁 RESPUESTA NORMAL
     setMessages([
       ...newMessages,
       {
@@ -74,7 +84,7 @@ export default function Page() {
       {
         role: "assistant",
         content:
-          "Perfecto 👍 Ya registramos tu solicitud. Un asesor te va a contactar a la brevedad.",
+          "Perfecto 👍 Ya registramos tu solicitud. Un asesor se va a comunicar con vos a la brevedad.",
       },
     ]);
   };
@@ -91,8 +101,6 @@ export default function Page() {
         boxShadow: "0 0 10px rgba(0,0,0,0.1)",
       }}
     >
-      {/* 👇 SACAMOS EL TÍTULO COMO PEDISTE */}
-
       {!mostrarFormulario && (
         <>
           <div
@@ -145,7 +153,7 @@ export default function Page() {
 
       {mostrarFormulario && (
         <div>
-          <h4>Solicitud de Presupuesto</h4>
+          <h4>Solicitud de contacto</h4>
 
           <input
             placeholder="Nombre"
@@ -183,7 +191,7 @@ export default function Page() {
               cursor: "pointer",
             }}
           >
-            Enviar solicitud
+            Enviar datos
           </button>
         </div>
       )}
