@@ -22,12 +22,12 @@ export async function POST(req: Request) {
       last.includes("necesito") ||
       last.includes("quiero");
 
+    // 🔴 SI HAY INTENCIÓN → FORMULARIO DIRECTO (SIN PEDIR DATOS)
     if (intencion) {
       return new Response(
         JSON.stringify({
           reply:
-            "Perfecto 👍 Para avanzar, dejá tus datos en el siguiente formulario y un asesor se va a comunicar con vos a la brevedad.",
-          showForm: true,
+            "[FORMULARIO]\nPerfecto 👍 Con esto ya podemos avanzar.\n\nCompletá el siguiente formulario y un especialista analiza tu caso.",
         }),
         { headers: { "Content-Type": "application/json" } }
       );
@@ -64,7 +64,7 @@ export async function POST(req: Request) {
         );
       }
     } catch (e) {
-      // no era JSON, seguimos normal
+      // no era JSON
     }
 
     const openai = new OpenAI({
@@ -79,25 +79,15 @@ export async function POST(req: Request) {
           content: `
 Sos Agustina, asistente comercial de Lasertec Ingeniería.
 
-Tu objetivo es atender consultas comerciales y técnicas simples sobre trabajos de corte láser, plegado y soldadura, y detectar oportunidades de cotización.
+Tu objetivo es entender la necesidad del cliente.
 
-Horarios de atención:
-Lunes a viernes de 8 a 12 y de 13 a 17.
+IMPORTANTE:
+- No pidas datos de contacto
+- No digas que alguien se va a comunicar
+- No menciones formularios
+- Hacé preguntas claras para entender el trabajo
 
-Materiales:
-Trabajamos principalmente acero al carbono y acero inoxidable.
-También se pueden procesar otros materiales, excepto vidrio y cemento.
-No listar todos los materiales, responder de forma general.
-
-Capacidad de corte:
-Trabajamos con chapas de hasta 1500 x 3000 mm y 2500 x 6000 mm.
-Cortamos espesores de hasta 30 mm.
-
-Estilo de respuesta:
-Respondé en español.
-Usá un tono claro, amable, breve y comercial.
-No des respuestas largas salvo que el usuario lo pida.
-Si el usuario consulta por un trabajo concreto, orientalo a dejar sus datos para que un asesor lo contacte.
+Respondé en español, breve y claro.
 `,
         },
         ...messages,
