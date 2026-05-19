@@ -80,7 +80,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 3. Pregunta específica por tamaños de chapa
+    // 3. Tamaños de chapa
     const preguntaTamanosChapa =
       last.includes("tamaño de chapa") ||
       last.includes("tamaños de chapa") ||
@@ -97,13 +97,13 @@ export async function POST(req: Request) {
       return new Response(
         JSON.stringify({
           reply:
-            "Trabajamos chapas de 1500 x 3000 mm y 2500 x 6000 mm, según el material. Para confirmar disponibilidad en un caso puntual, conviene indicar material, espesor y cantidad.",
+            "Los tamaños de chapa disponibles son:\n\n- Acero 1010: 1500 x 3000 mm.\n- Inoxidable 304: 2500 x 6000 mm.\n- Otros materiales: 1500 x 3000 mm.\n\nLa disponibilidad final puede depender del material y del trabajo a realizar.",
         }),
         { headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // 4. Pregunta específica por espesores
+    // 4. Espesores
     const preguntaEspesores =
       last.includes("espesor") ||
       last.includes("espesores") ||
@@ -116,13 +116,13 @@ export async function POST(req: Request) {
       return new Response(
         JSON.stringify({
           reply:
-            "Los espesores dependen del material. En la base actual figuran estos rangos:\n\n- Inoxidable 304: de 0,5 mm a 19 mm, según terminación.\n- Inoxidable 316: de 1 mm a 8 mm.\n- Inoxidable 420: de 1,5 mm a 5 mm.\n- Inoxidable 430: de 0,5 mm a 2 mm.\n- Acero 1010: de 0,5 mm a 12,7 mm.\n- Acero 1045: de 3,17 mm a 12,7 mm.\n- Galvanizado: de 0,5 mm a 3,2 mm.\n- Aluminio: de 0,5 mm a 10 mm, según calidad.\n- Latón: de 0,1 mm a 4 mm.\n- F-24: de 3,17 mm a 12,7 mm.\n\nPara un caso puntual, conviene indicar material, espesor requerido, medidas y cantidad.",
+            "Según la base actual, los espesores disponibles llegan hasta 30 mm.\n\nDetalle:\n- Acero 1010: hasta 30 mm.\n- Inoxidable 304: hasta 30 mm.\n- Otros materiales: hasta 30 mm.\n\nPara confirmar un caso puntual, conviene indicar material, medidas, cantidad y proceso requerido.",
         }),
         { headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // 5. Pregunta específica por materiales
+    // 5. Materiales
     const preguntaMateriales =
       last.includes("material") ||
       last.includes("materiales") ||
@@ -130,22 +130,19 @@ export async function POST(req: Request) {
       last.includes("que materiales") ||
       last.includes("trabajan inoxidable") ||
       last.includes("trabajan acero") ||
-      last.includes("trabajan aluminio") ||
-      last.includes("trabajan galvanizado") ||
-      last.includes("trabajan latón") ||
-      last.includes("trabajan laton");
+      last.includes("trabajan aluminio");
 
     if (preguntaMateriales) {
       return new Response(
         JSON.stringify({
           reply:
-            "Trabajamos con acero 1010, acero 1045, inoxidable 304, inoxidable 316, inoxidable 420, inoxidable 430, galvanizado, aluminio, latón y F-24. La disponibilidad de espesores y formatos depende de cada material.",
+            "Según la base actual, se trabaja con acero 1010, inoxidable 304 y otros materiales. Para confirmar disponibilidad en un caso puntual, conviene indicar material, espesor, medidas y proceso requerido.",
         }),
         { headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // 6. Pregunta específica por procesos
+    // 6. Procesos existentes
     const preguntaProcesos =
       last.includes("procesos") ||
       last.includes("servicios") ||
@@ -159,7 +156,7 @@ export async function POST(req: Request) {
       return new Response(
         JSON.stringify({
           reply:
-            "Los procesos disponibles son: corte láser, plegado, soldadura MIG, soldadura TIG, soldadura láser, soldadura a punto, pulido, arenado, flapeado, avellanado, biselado, esmerilado, galvanizado, mecanizado, pintura, planchado, conformado, rolado, roscado y zincado.",
+            "Los procesos disponibles son: pulido, arenado, flapeado, avellanado, biselado, corte láser, esmerilado, galvanizado, mecanizado, pintura, planchado, plegado, conformado, rolado, roscado, soldadura MIG, soldadura TIG, soldadura láser, soldadura a punto y zincado.",
         }),
         { headers: { "Content-Type": "application/json" } }
       );
@@ -171,9 +168,6 @@ export async function POST(req: Request) {
         last.includes("acero") ||
         last.includes("aluminio") ||
         last.includes("hierro") ||
-        last.includes("galvanizado") ||
-        last.includes("latón") ||
-        last.includes("laton") ||
         last.includes("chapa") ||
         last.includes("chapas") ||
         last.includes("mm") ||
@@ -251,10 +245,6 @@ export async function POST(req: Request) {
       last.includes("inoxidable") ||
       last.includes("hierro") ||
       last.includes("aluminio") ||
-      last.includes("galvanizado") ||
-      last.includes("latón") ||
-      last.includes("laton") ||
-      last.includes("f-24") ||
       last.includes("metal") ||
       last.includes("metalúrgico") ||
       last.includes("metalurgico");
@@ -325,26 +315,12 @@ DATOS FIJOS DE LA EMPRESA:
 - Horario de atención: de 8:00 a 12:00 y de 13:00 a 17:00.
 - No digas que el horario es de 8 a 18.
 
-CHAPAS, MATERIALES Y ESPESORES:
-Tamaños de chapa disponibles:
-- 1500 x 3000 mm.
-- 2500 x 6000 mm.
-La disponibilidad depende del material.
+BASE TÉCNICA ACTUAL:
+- Acero 1010: chapa 1500 x 3000 mm, hasta 30 mm de espesor.
+- Inoxidable 304: chapa 2500 x 6000 mm, hasta 30 mm de espesor.
+- Otros materiales: chapa 1500 x 3000 mm, hasta 30 mm de espesor.
 
-Materiales y espesores registrados:
-- Inoxidable 304: 0,5 / 0,7 / 0,8 / 1 / 1,2 / 1,5 / 2 / 2,5 / 3 / 4 / 5 / 6 / 8 / 10 / 12,7 / 19 mm, según terminación B, E o LC.
-- Inoxidable 316: 1 / 1,25 / 1,5 / 2 / 2,5 / 3 / 4 / 5 / 6 / 8 mm.
-- Inoxidable 420: 1,5 / 2,5 / 3 / 4 / 5 mm.
-- Inoxidable 430: 0,5 / 1 / 1,2 / 1,5 / 2 mm, según terminación B o E.
-- Acero 1010: 0,5 / 0,6 / 0,7 / 0,9 / 1,25 / 1,65 / 2 / 2,1 / 2,5 / 3 / 3,17 / 4 / 4,76 / 6,35 / 7,92 / 9,52 / 12,7 mm.
-- Acero 1045: 3,17 / 4 / 4,76 / 6,35 / 7,92 / 9,52 / 12,7 mm.
-- Galvanizado: 0,5 / 0,7 / 0,9 / 1,2 / 1,6 / 2 / 3 / 3,2 mm.
-- Aluminio 45: 0,5 / 0,8 / 1 / 1,5 / 2 / 2,5 / 3 mm.
-- Aluminio 52: 3 / 4 / 5 / 6 / 6,4 / 8 / 10 mm.
-- Latón: 0,1 / 0,2 / 0,3 / 0,5 / 1 / 1,25 / 1,5 / 2 / 2,5 / 3 / 4 mm.
-- F-24: 3,17 / 6,35 / 7,92 / 9,52 / 12,7 mm.
-
-PROCESOS DISPONIBLES:
+Procesos disponibles:
 - Pulido.
 - Arenado.
 - Flapeado.
@@ -367,10 +343,12 @@ PROCESOS DISPONIBLES:
 - Zincado.
 
 REGLAS IMPORTANTES:
+- Ignorá completamente cualquier otra tabla o pestaña de materiales y espesores.
+- No menciones inoxidables 316, 420, 430, latón, F-24 ni espesores específicos por calidad.
 - Si el usuario pregunta por horarios, respondé exactamente el horario fijo.
 - Si el usuario pregunta por tamaños de chapa, respondé solo los tamaños de chapa.
-- Si el usuario pregunta por espesores, respondé solo los espesores/materiales.
-- Si el usuario pregunta por materiales, respondé solo materiales.
+- Si el usuario pregunta por espesores, respondé solo los espesores máximos según la base técnica actual.
+- Si el usuario pregunta por materiales, respondé solo: acero 1010, inoxidable 304 y otros materiales. No inventes otros materiales específicos.
 - Si el usuario pregunta por procesos, respondé solo procesos.
 - Si el dato no está en la base técnica anterior, decí que hay que confirmarlo con el equipo técnico.
 - Si el usuario pregunta si realizan envíos al interior, respondé que sí pueden coordinar envíos al interior y preguntá destino y tipo de trabajo.
