@@ -12,6 +12,7 @@ export default function ChatUI() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
@@ -19,7 +20,7 @@ export default function ChatUI() {
     setTimeout(() => {
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }, 100);
-  }, [messages, showForm]);
+  }, [messages, showForm, formOpen]);
 
   const sendMessage = async () => {
     if (!message.trim()) return;
@@ -51,19 +52,17 @@ export default function ChatUI() {
             .replace(/\[FORMULARIO\]/gi, "")
             .trim();
 
-          // 1. Mostrar mensaje SIEMPRE
           setMessages((prev) => [
             ...prev,
             { who: "SISTEMA", text: cleanText },
           ]);
 
-          // 2. Scroll al mensaje (asegura visibilidad)
           setTimeout(() => {
             bottomRef.current?.scrollIntoView({ behavior: "smooth" });
           }, 150);
 
-          // 3. Mostrar formulario después (UX natural)
           setTimeout(() => {
+            setFormOpen(false);
             setShowForm(true);
           }, 600);
         } else {
@@ -140,6 +139,7 @@ export default function ChatUI() {
               background: "#fff",
               border: "1px solid #e5e5e5",
               color: "#000",
+              whiteSpace: "pre-line",
             }}
           >
             Hola, soy el asistente comercial.
@@ -171,48 +171,67 @@ export default function ChatUI() {
 
         {showForm && (
           <div style={{ marginTop: 10 }}>
-            <b>Completar datos</b>
+            {!formOpen ? (
+              <button
+                onClick={() => setFormOpen(true)}
+                style={{
+                  ...buttonStyle,
+                  width: "100%",
+                  marginTop: 8,
+                }}
+              >
+                Completar formulario de cotización
+              </button>
+            ) : (
+              <>
+                <b>Completar datos</b>
 
-            <input id="empresa" placeholder="Empresa" style={inputStyle} />
-            <input id="nombre" placeholder="Nombre" style={inputStyle} />
-            <input id="contacto" placeholder="Teléfono o email" style={inputStyle} />
-            <textarea id="detalle" placeholder="Detalle" style={inputStyle} />
+                <input id="empresa" placeholder="Empresa" style={inputStyle} />
+                <input id="nombre" placeholder="Nombre" style={inputStyle} />
+                <input id="contacto" placeholder="Teléfono o email" style={inputStyle} />
+                <textarea id="detalle" placeholder="Detalle" style={inputStyle} />
 
-            <button
-              onClick={async () => {
-                const contacto = (document.getElementById("contacto") as HTMLInputElement).value;
-                const esEmail = contacto.includes("@");
+                <button
+                  onClick={async () => {
+                    const contacto = (document.getElementById("contacto") as HTMLInputElement).value;
+                    const esEmail = contacto.includes("@");
 
-                const formData = {
-                  empresa: (document.getElementById("empresa") as HTMLInputElement).value,
-                  nombre: (document.getElementById("nombre") as HTMLInputElement).value,
-                  email: esEmail ? contacto : "",
-                  telefono: esEmail ? "" : contacto,
-                  descripcion: (document.getElementById("detalle") as HTMLTextAreaElement).value,
-                };
+                    const formData = {
+                      empresa: (document.getElementById("empresa") as HTMLInputElement).value,
+                      nombre: (document.getElementById("nombre") as HTMLInputElement).value,
+                      email: esEmail ? contacto : "",
+                      telefono: esEmail ? "" : contacto,
+                      descripcion: (document.getElementById("detalle") as HTMLTextAreaElement).value,
+                    };
 
-                await fetch("https://script.google.com/macros/s/AKfycbxJ4ZFemcLehp14FTYLgp0frs72utzPxXhxrxxnuhCgzJH-fTCiHtJqQJd5P788_f6yIw/exec", {
-                  method: "POST",
-                  mode: "no-cors",
-                  body: JSON.stringify(formData),
-                });
+                    await fetch("https://script.google.com/macros/s/AKfycbxJ4ZFemcLehp14FTYLgp0frs72utzPxXhxrxxnuhCgzJH-fTCiHtJqQJd5P788_f6yIw/exec", {
+                      method: "POST",
+                      mode: "no-cors",
+                      body: JSON.stringify(formData),
+                    });
 
-                alert("Datos enviados");
+                    alert("Datos enviados");
 
-                setShowForm(false);
+                    setShowForm(false);
+                    setFormOpen(false);
 
-                // reset limpio
-                setMessages([
-                  {
-                    who: "SISTEMA",
-                    text: "Gracias, recibimos tus datos. Un vendedor se va a contactar con vos.\n\n¿Te puedo ayudar con algo más?",
-                  },
-                ]);
-              }}
-              style={buttonStyle}
-            >
-              Enviar
-            </button>
+                    setMessages([
+                      {
+                        who: "SISTEMA",
+                        text: "Gracias, recibimos tus datos. Un vendedor se va a contactar con vos.\n\n¿Te puedo ayudar con algo más?",
+                      },
+                    ]);
+                  }}
+                  style={{
+                    ...buttonStyle,
+                    width: "100%",
+                    marginTop: 8,
+                  }}
+                >
+                  Enviar
+                </button>
+              </>
+            )}
           </div>
         )}
 
