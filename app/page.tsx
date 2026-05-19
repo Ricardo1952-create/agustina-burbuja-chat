@@ -13,12 +13,17 @@ export default function Page() {
 
   const [input, setInput] = useState("");
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [formularioAbierto, setFormularioAbierto] = useState(false);
 
   const [form, setForm] = useState({
     nombre: "",
     telefono: "",
     detalle: "",
   });
+
+  const limpiarRespuesta = (texto: string) => {
+    return texto.replace(/\[FORMULARIO\]/gi, "").trim();
+  };
 
   const sendMessage = async () => {
     if (!input) return;
@@ -42,11 +47,12 @@ export default function Page() {
         ...newMessages,
         {
           role: "assistant",
-          content: data.reply,
+          content: limpiarRespuesta(data.reply || ""),
         },
       ]);
 
       setMostrarFormulario(true);
+      setFormularioAbierto(false);
       return;
     }
 
@@ -54,7 +60,7 @@ export default function Page() {
       ...newMessages,
       {
         role: "assistant",
-        content: data.reply,
+        content: limpiarRespuesta(data.reply || ""),
       },
     ]);
   };
@@ -76,15 +82,22 @@ export default function Page() {
     });
 
     setMostrarFormulario(false);
+    setFormularioAbierto(false);
 
-    setMessages([
-      ...messages,
+    setMessages((prev) => [
+      ...prev,
       {
         role: "assistant",
         content:
           "Perfecto 👍 Ya registramos tu solicitud. Un asesor se va a comunicar con vos a la brevedad.",
       },
     ]);
+
+    setForm({
+      nombre: "",
+      telefono: "",
+      detalle: "",
+    });
   };
 
   return (
@@ -118,7 +131,7 @@ export default function Page() {
         ))}
       </div>
 
-      {/* INPUT SOLO SI NO HAY FORM */}
+      {/* INPUT SOLO SI NO HAY FORMULARIO */}
       {!mostrarFormulario && (
         <>
           <input
@@ -151,13 +164,34 @@ export default function Page() {
         </>
       )}
 
+      {/* BOTÓN PARA ABRIR FORMULARIO */}
+      {mostrarFormulario && !formularioAbierto && (
+        <button
+          onClick={() => setFormularioAbierto(true)}
+          style={{
+            marginTop: 10,
+            width: "100%",
+            padding: 12,
+            background: "#0070f3",
+            color: "#fff",
+            border: "none",
+            borderRadius: 6,
+            cursor: "pointer",
+            fontWeight: "bold",
+          }}
+        >
+          Completar formulario de cotización
+        </button>
+      )}
+
       {/* FORMULARIO ABAJO */}
-      {mostrarFormulario && (
+      {mostrarFormulario && formularioAbierto && (
         <div style={{ marginTop: 15 }}>
           <h4>Solicitud de contacto</h4>
 
           <input
             placeholder="Nombre"
+            value={form.nombre}
             onChange={(e) =>
               setForm({ ...form, nombre: e.target.value })
             }
@@ -166,6 +200,7 @@ export default function Page() {
 
           <input
             placeholder="Teléfono"
+            value={form.telefono}
             onChange={(e) =>
               setForm({ ...form, telefono: e.target.value })
             }
@@ -174,6 +209,7 @@ export default function Page() {
 
           <textarea
             placeholder="Detalle del trabajo"
+            value={form.detalle}
             onChange={(e) =>
               setForm({ ...form, detalle: e.target.value })
             }
