@@ -60,7 +60,34 @@ export async function POST(req: Request) {
       // No era JSON, seguimos normalmente
     }
 
-    // 2. Horario de atención
+    // 2. Detectar pedido de presupuesto / cotización
+    const pidePresupuesto =
+      last.includes("cotizar") ||
+      last.includes("cotizá") ||
+      last.includes("cotiza") ||
+      last.includes("cotizalo") ||
+      last.includes("cotízalo") ||
+      last.includes("cotizame") ||
+      last.includes("cotízame") ||
+      last.includes("cotización") ||
+      last.includes("cotizacion") ||
+      last.includes("presupuesto") ||
+      last.includes("presupuestar") ||
+      last.includes("precio") ||
+      last.includes("costo") ||
+      last.includes("valor") ||
+      last.includes("cuánto sale") ||
+      last.includes("cuanto sale");
+
+    const preguntaEnvio =
+      last.includes("envío") ||
+      last.includes("envio") ||
+      last.includes("interior") ||
+      last.includes("expreso") ||
+      last.includes("transporte") ||
+      last.includes("flete");
+
+    // 3. Horario de atención
     const preguntaHorario =
       last.includes("horario") ||
       last.includes("horarios") ||
@@ -80,7 +107,28 @@ export async function POST(req: Request) {
       );
     }
 
-    // 3. Pregunta combinada por tamaños y espesores de chapa
+    // 4. Envíos al interior: no dispara formulario por sí solo
+    if (preguntaEnvio && !pidePresupuesto) {
+      return new Response(
+        JSON.stringify({
+          reply:
+            "Sí, podemos coordinar envíos al interior. Para orientarte mejor, indicame el destino y qué tipo de trabajo o producto necesitás enviar.",
+        }),
+        { headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    if (preguntaEnvio && pidePresupuesto && !historial.includes("corte") && !historial.includes("plegado") && !historial.includes("soldadura") && !historial.includes("fabricar") && !historial.includes("fabricación")) {
+      return new Response(
+        JSON.stringify({
+          reply:
+            "El costo del envío depende del destino, tamaño, peso y características del trabajo. Para estimarlo primero necesitamos saber qué pieza, chapa o trabajo querés realizar.",
+        }),
+        { headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // 5. Consulta combinada por tamaños y espesores de chapa
     const preguntaTamanosYEspesores =
       (last.includes("tamaño") ||
         last.includes("tamaños") ||
@@ -103,7 +151,48 @@ export async function POST(req: Request) {
       );
     }
 
-    // 4. Tamaños de chapa
+    // 6. Consulta específica de disponibilidad de tamaño + material
+    const preguntaDisponibilidadChapa =
+      (last.includes("trabajan") ||
+        last.includes("utilizan") ||
+        last.includes("usan") ||
+        last.includes("tienen") ||
+        last.includes("disponen")) &&
+      (last.includes("chapa") || last.includes("chapas")) &&
+      (last.includes("1500") ||
+        last.includes("1.500") ||
+        last.includes("3000") ||
+        last.includes("3.000") ||
+        last.includes("2500") ||
+        last.includes("2.500") ||
+        last.includes("6000") ||
+        last.includes("6.000"));
+
+    if (preguntaDisponibilidadChapa) {
+      if (
+        last.includes("inoxidable 304") &&
+        (last.includes("1500") || last.includes("1.500")) &&
+        (last.includes("3000") || last.includes("3.000"))
+      ) {
+        return new Response(
+          JSON.stringify({
+            reply:
+              "Según la base actual, para inoxidable 304 figura chapa de 2500 x 6000 mm, hasta 30 mm de espesor. Para inoxidable 304 en 1500 x 3000 mm habría que confirmarlo con el equipo técnico.",
+          }),
+          { headers: { "Content-Type": "application/json" } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({
+          reply:
+            "Según la base actual:\n\n- Acero 1010: chapa 1500 x 3000 mm, hasta 30 mm de espesor.\n- Inoxidable 304: chapa 2500 x 6000 mm, hasta 30 mm de espesor.\n- Otros materiales: chapa 1500 x 3000 mm, hasta 30 mm de espesor.",
+        }),
+        { headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // 7. Tamaños de chapa
     const preguntaTamanosChapa =
       last.includes("tamaño de chapa") ||
       last.includes("tamaños de chapa") ||
@@ -126,7 +215,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 5. Espesores
+    // 8. Espesores
     const preguntaEspesores =
       last.includes("espesor") ||
       last.includes("espesores") ||
@@ -145,7 +234,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 6. Materiales
+    // 9. Materiales
     const preguntaMateriales =
       last.includes("material") ||
       last.includes("materiales") ||
@@ -165,7 +254,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 7. Procesos existentes
+    // 10. Procesos existentes
     const preguntaProcesos =
       last.includes("procesos") ||
       last.includes("servicios") ||
@@ -185,7 +274,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 8. Si viene de una consulta técnica y solo responde material/espesor, NO activar formulario
+    // 11. Si viene de una consulta técnica y solo responde material/espesor, NO activar formulario
     const respuestaMaterialEspesor =
       (last.includes("inoxidable") ||
         last.includes("acero") ||
@@ -205,17 +294,6 @@ export async function POST(req: Request) {
         historial.includes("material") ||
         historial.includes("materiales"));
 
-    const pidePresupuesto =
-      last.includes("cotizar") ||
-      last.includes("cotización") ||
-      last.includes("cotizacion") ||
-      last.includes("presupuesto") ||
-      last.includes("precio") ||
-      last.includes("costo") ||
-      last.includes("valor") ||
-      last.includes("cuánto sale") ||
-      last.includes("cuanto sale");
-
     if (respuestaMaterialEspesor && !pidePresupuesto) {
       return new Response(
         JSON.stringify({
@@ -226,7 +304,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 9. Detectar intención comercial real
+    // 12. Detectar intención comercial real
     const mencionaAccionDeTrabajo =
       last.includes("corte") ||
       last.includes("cortar") ||
@@ -285,7 +363,11 @@ export async function POST(req: Request) {
       historial.includes("mecanizado") ||
       historial.includes("mecanizar") ||
       historial.includes("pintura") ||
-      historial.includes("pintar");
+      historial.includes("pintar") ||
+      historial.includes("chapa") ||
+      historial.includes("chapas") ||
+      historial.includes("inoxidable") ||
+      historial.includes("acero");
 
     const pedidoGenericoDeCotizacion =
       (last.includes("quiero") || last.includes("necesito")) &&
@@ -298,6 +380,7 @@ export async function POST(req: Request) {
       - Preguntar por espesores, materiales, tamaños de chapa o procesos NO dispara formulario.
       - Material + espesor solo, por ejemplo "inoxidable de 2 mm", NO dispara formulario.
       - Envío al interior NO dispara formulario por sí solo.
+      - "Cotizalo", "cotizame", "cotízalo", "cotízame" SÍ disparan formulario.
       - El formulario se activa si pide cotización/presupuesto/precio
         o si menciona una acción concreta de trabajo: cortar, plegar, soldar, fabricar, etc.
     */
@@ -319,7 +402,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 10. Si no hay intención comercial concreta, responde normalmente con base técnica cerrada
+    // 13. Si no hay intención comercial concreta, responde normalmente con base técnica cerrada
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY!,
     });
@@ -373,6 +456,7 @@ REGLAS IMPORTANTES:
 - Si el usuario pregunta por espesores, respondé solo los espesores máximos según la base técnica actual.
 - Si el usuario pregunta por tamaños y espesores juntos, respondé ambas cosas juntas según la base técnica actual.
 - Si el usuario pregunta por materiales, respondé solo: acero 1010, inoxidable 304 y otros materiales. No inventes otros materiales específicos.
+- Si el usuario pregunta si trabajan con chapa 1500 x 3000 en inoxidable 304, respondé que la base actual indica inoxidable 304 en 2500 x 6000 mm y que 1500 x 3000 mm en inoxidable 304 debe confirmarse con el equipo técnico.
 - Si el usuario pregunta por procesos, respondé solo procesos.
 - Si el dato no está en la base técnica anterior, decí que hay que confirmarlo con el equipo técnico.
 - Si el usuario pregunta si realizan envíos al interior, respondé que sí pueden coordinar envíos al interior y preguntá destino y tipo de trabajo.
