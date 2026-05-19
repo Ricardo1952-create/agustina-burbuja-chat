@@ -80,7 +80,30 @@ export async function POST(req: Request) {
       );
     }
 
-    // 3. Tamaños de chapa
+    // 3. Pregunta combinada por tamaños y espesores de chapa
+    const preguntaTamanosYEspesores =
+      (last.includes("tamaño") ||
+        last.includes("tamaños") ||
+        last.includes("medida") ||
+        last.includes("medidas") ||
+        last.includes("formato") ||
+        last.includes("formatos")) &&
+      (last.includes("espesor") ||
+        last.includes("espesores") ||
+        last.includes("grosor") ||
+        last.includes("grosores"));
+
+    if (preguntaTamanosYEspesores) {
+      return new Response(
+        JSON.stringify({
+          reply:
+            "Según la base actual, los tamaños y espesores de chapa disponibles son:\n\n- Acero 1010: chapa 1500 x 3000 mm, hasta 30 mm de espesor.\n- Inoxidable 304: chapa 2500 x 6000 mm, hasta 30 mm de espesor.\n- Otros materiales: chapa 1500 x 3000 mm, hasta 30 mm de espesor.\n\nPara confirmar un caso puntual, conviene indicar material, medidas, cantidad y proceso requerido.",
+        }),
+        { headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // 4. Tamaños de chapa
     const preguntaTamanosChapa =
       last.includes("tamaño de chapa") ||
       last.includes("tamaños de chapa") ||
@@ -103,7 +126,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 4. Espesores
+    // 5. Espesores
     const preguntaEspesores =
       last.includes("espesor") ||
       last.includes("espesores") ||
@@ -122,7 +145,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 5. Materiales
+    // 6. Materiales
     const preguntaMateriales =
       last.includes("material") ||
       last.includes("materiales") ||
@@ -142,7 +165,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 6. Procesos existentes
+    // 7. Procesos existentes
     const preguntaProcesos =
       last.includes("procesos") ||
       last.includes("servicios") ||
@@ -162,7 +185,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 7. Si viene de una consulta técnica y solo responde material/espesor, NO activar formulario
+    // 8. Si viene de una consulta técnica y solo responde material/espesor, NO activar formulario
     const respuestaMaterialEspesor =
       (last.includes("inoxidable") ||
         last.includes("acero") ||
@@ -203,7 +226,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 8. Detectar intención comercial real
+    // 9. Detectar intención comercial real
     const mencionaAccionDeTrabajo =
       last.includes("corte") ||
       last.includes("cortar") ||
@@ -296,7 +319,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 9. Si no hay intención comercial concreta, responde normalmente con base técnica cerrada
+    // 10. Si no hay intención comercial concreta, responde normalmente con base técnica cerrada
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY!,
     });
@@ -348,6 +371,7 @@ REGLAS IMPORTANTES:
 - Si el usuario pregunta por horarios, respondé exactamente el horario fijo.
 - Si el usuario pregunta por tamaños de chapa, respondé solo los tamaños de chapa.
 - Si el usuario pregunta por espesores, respondé solo los espesores máximos según la base técnica actual.
+- Si el usuario pregunta por tamaños y espesores juntos, respondé ambas cosas juntas según la base técnica actual.
 - Si el usuario pregunta por materiales, respondé solo: acero 1010, inoxidable 304 y otros materiales. No inventes otros materiales específicos.
 - Si el usuario pregunta por procesos, respondé solo procesos.
 - Si el dato no está en la base técnica anterior, decí que hay que confirmarlo con el equipo técnico.
