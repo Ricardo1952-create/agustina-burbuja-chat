@@ -118,7 +118,15 @@ export async function POST(req: Request) {
       );
     }
 
-    if (preguntaEnvio && pidePresupuesto && !historial.includes("corte") && !historial.includes("plegado") && !historial.includes("soldadura") && !historial.includes("fabricar") && !historial.includes("fabricación")) {
+    if (
+      preguntaEnvio &&
+      pidePresupuesto &&
+      !historial.includes("corte") &&
+      !historial.includes("plegado") &&
+      !historial.includes("soldadura") &&
+      !historial.includes("fabricar") &&
+      !historial.includes("fabricación")
+    ) {
       return new Response(
         JSON.stringify({
           reply:
@@ -128,7 +136,47 @@ export async function POST(req: Request) {
       );
     }
 
-    // 5. Consulta combinada por tamaños y espesores de chapa
+    // 5. Consulta informativa sobre si realizan un proceso
+    const preguntaSiRealizanProceso =
+      (last.includes("realizan") ||
+        last.includes("hacen") ||
+        last.includes("ofrecen") ||
+        last.includes("trabajan con") ||
+        last.includes("tienen servicio") ||
+        last.includes("pueden hacer") ||
+        last.includes("se puede hacer")) &&
+      (last.includes("plegado") ||
+        last.includes("plegar") ||
+        last.includes("soldadura") ||
+        last.includes("soldar") ||
+        last.includes("corte") ||
+        last.includes("cortar") ||
+        last.includes("corte láser") ||
+        last.includes("corte laser") ||
+        last.includes("pintura") ||
+        last.includes("pintar") ||
+        last.includes("mecanizado") ||
+        last.includes("mecanizar") ||
+        last.includes("rolado") ||
+        last.includes("rolar") ||
+        last.includes("roscado") ||
+        last.includes("roscar") ||
+        last.includes("biselado") ||
+        last.includes("biselar") ||
+        last.includes("avellanado") ||
+        last.includes("avellanar"));
+
+    if (preguntaSiRealizanProceso && !pidePresupuesto) {
+      return new Response(
+        JSON.stringify({
+          reply:
+            "Sí, realizamos esos procesos. Los procesos disponibles incluyen corte láser, plegado, soldadura MIG, soldadura TIG, soldadura láser, soldadura a punto, mecanizado, pintura, rolado, roscado, biselado, avellanado y otros trabajos complementarios. Para un caso puntual, conviene indicar material, medidas, cantidad y proceso requerido.",
+        }),
+        { headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // 6. Consulta combinada por tamaños y espesores de chapa
     const preguntaTamanosYEspesores =
       (last.includes("tamaño") ||
         last.includes("tamaños") ||
@@ -151,7 +199,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 6. Consulta específica de disponibilidad de tamaño + material
+    // 7. Consulta específica de disponibilidad de tamaño + material
     const preguntaDisponibilidadChapa =
       (last.includes("trabajan") ||
         last.includes("utilizan") ||
@@ -192,7 +240,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 7. Tamaños de chapa
+    // 8. Tamaños de chapa
     const preguntaTamanosChapa =
       last.includes("tamaño de chapa") ||
       last.includes("tamaños de chapa") ||
@@ -215,7 +263,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 8. Espesores
+    // 9. Espesores
     const preguntaEspesores =
       last.includes("espesor") ||
       last.includes("espesores") ||
@@ -234,7 +282,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 9. Materiales
+    // 10. Materiales
     const preguntaMateriales =
       last.includes("material") ||
       last.includes("materiales") ||
@@ -254,7 +302,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 10. Procesos existentes
+    // 11. Procesos existentes
     const preguntaProcesos =
       last.includes("procesos") ||
       last.includes("servicios") ||
@@ -274,7 +322,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 11. Si viene de una consulta técnica y solo responde material/espesor, NO activar formulario
+    // 12. Si viene de una consulta técnica y solo responde material/espesor, NO activar formulario
     const respuestaMaterialEspesor =
       (last.includes("inoxidable") ||
         last.includes("acero") ||
@@ -304,7 +352,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 12. Detectar intención comercial real
+    // 13. Detectar intención comercial real
     const mencionaAccionDeTrabajo =
       last.includes("corte") ||
       last.includes("cortar") ||
@@ -377,17 +425,18 @@ export async function POST(req: Request) {
 
     /*
       Reglas:
+      - Preguntar si realizan un servicio NO dispara formulario.
       - Preguntar por espesores, materiales, tamaños de chapa o procesos NO dispara formulario.
       - Material + espesor solo, por ejemplo "inoxidable de 2 mm", NO dispara formulario.
       - Envío al interior NO dispara formulario por sí solo.
       - "Cotizalo", "cotizame", "cotízalo", "cotízame" SÍ disparan formulario.
       - El formulario se activa si pide cotización/presupuesto/precio
-        o si menciona una acción concreta de trabajo: cortar, plegar, soldar, fabricar, etc.
+        o si menciona una acción concreta de trabajo sin formato de pregunta informativa.
     */
     const intencion =
       pedidoGenericoDeCotizacion ||
       pidePresupuesto ||
-      mencionaAccionDeTrabajo ||
+      (mencionaAccionDeTrabajo && !preguntaSiRealizanProceso) ||
       (mencionaObjetoDeTrabajo && historialTieneServicioConcreto) ||
       (pidePresupuesto && (mencionaMaterial || mencionaObjetoDeTrabajo));
 
@@ -402,7 +451,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 13. Si no hay intención comercial concreta, responde normalmente con base técnica cerrada
+    // 14. Si no hay intención comercial concreta, responde normalmente con base técnica cerrada
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY!,
     });
@@ -457,6 +506,7 @@ REGLAS IMPORTANTES:
 - Si el usuario pregunta por tamaños y espesores juntos, respondé ambas cosas juntas según la base técnica actual.
 - Si el usuario pregunta por materiales, respondé solo: acero 1010, inoxidable 304 y otros materiales. No inventes otros materiales específicos.
 - Si el usuario pregunta si trabajan con chapa 1500 x 3000 en inoxidable 304, respondé que la base actual indica inoxidable 304 en 2500 x 6000 mm y que 1500 x 3000 mm en inoxidable 304 debe confirmarse con el equipo técnico.
+- Si el usuario pregunta si realizan plegado, soldadura, corte láser u otro proceso, respondé como consulta informativa. No lo mandes al formulario.
 - Si el usuario pregunta por procesos, respondé solo procesos.
 - Si el dato no está en la base técnica anterior, decí que hay que confirmarlo con el equipo técnico.
 - Si el usuario pregunta si realizan envíos al interior, respondé que sí pueden coordinar envíos al interior y preguntá destino y tipo de trabajo.
