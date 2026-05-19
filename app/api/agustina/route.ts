@@ -60,7 +60,7 @@ export async function POST(req: Request) {
       // No era JSON, seguimos normalmente
     }
 
-    // 2. Respuestas directas para datos generales conocidos
+    // 2. Respuesta directa para horario
     const preguntaHorario =
       last.includes("horario") ||
       last.includes("horarios") ||
@@ -80,33 +80,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 3. Detectar servicio/trabajo concreto de Lasertec
-    const mencionaServicioConcreto =
-      last.includes("corte") ||
-      last.includes("cortar") ||
-      last.includes("corte láser") ||
-      last.includes("corte laser") ||
-      last.includes("chapa") ||
-      last.includes("chapas") ||
-      last.includes("plegado") ||
-      last.includes("plegar") ||
-      last.includes("soldadura") ||
-      last.includes("soldar") ||
-      last.includes("pintura") ||
-      last.includes("pieza") ||
-      last.includes("piezas") ||
-      last.includes("acero") ||
-      last.includes("inoxidable") ||
-      last.includes("hierro") ||
-      last.includes("aluminio") ||
-      last.includes("metal") ||
-      last.includes("metalúrgico") ||
-      last.includes("metalurgico") ||
-      last.includes("fabricación") ||
-      last.includes("fabricacion") ||
-      last.includes("fabricar");
-
-    // 4. Detectar pedido explícito de presupuesto
+    // 3. Detectar pedido explícito de presupuesto
     const pidePresupuesto =
       last.includes("cotizar") ||
       last.includes("cotización") ||
@@ -118,28 +92,105 @@ export async function POST(req: Request) {
       last.includes("cuánto sale") ||
       last.includes("cuanto sale");
 
-    // 5. Detectar si en el historial ya se habló de un servicio concreto
+    // 4. Detectar consultas técnicas o informativas que NO deben disparar formulario
+    const consultaTecnicaInformativa =
+      last.includes("espesor") ||
+      last.includes("espesores") ||
+      last.includes("grosor") ||
+      last.includes("grosores") ||
+      last.includes("material") ||
+      last.includes("materiales") ||
+      last.includes("trabajan inoxidable") ||
+      last.includes("trabajan acero") ||
+      last.includes("trabajan aluminio") ||
+      last.includes("qué materiales") ||
+      last.includes("que materiales") ||
+      last.includes("qué espesores") ||
+      last.includes("que espesores") ||
+      last.includes("hasta qué espesor") ||
+      last.includes("hasta que espesor");
+
+    const respuestaMaterialEspesor =
+      (last.includes("inoxidable") ||
+        last.includes("acero") ||
+        last.includes("aluminio") ||
+        last.includes("hierro") ||
+        last.includes("chapa") ||
+        last.includes("chapas") ||
+        last.includes("mm") ||
+        last.includes("milimetro") ||
+        last.includes("milímetro") ||
+        last.includes("milimetros") ||
+        last.includes("milímetros")) &&
+      (historial.includes("espesor") ||
+        historial.includes("espesores") ||
+        historial.includes("material") ||
+        historial.includes("materiales") ||
+        historial.includes("grosor") ||
+        historial.includes("grosores"));
+
+    if (!pidePresupuesto && (consultaTecnicaInformativa || respuestaMaterialEspesor)) {
+      return new Response(
+        JSON.stringify({
+          reply:
+            "Podemos trabajar distintos materiales y espesores según el tipo de pieza, el proceso requerido y las características del trabajo. Para inoxidable de 2 mm, por ejemplo, se puede evaluar el caso. Para darte una respuesta precisa harían falta medidas, cantidad y detalles del trabajo. ¿Querés consultar algo técnico o necesitás cotizar un trabajo concreto?",
+        }),
+        { headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // 5. Detectar trabajo concreto real
+    const mencionaAccionDeTrabajo =
+      last.includes("corte") ||
+      last.includes("cortar") ||
+      last.includes("corte láser") ||
+      last.includes("corte laser") ||
+      last.includes("plegado") ||
+      last.includes("plegar") ||
+      last.includes("soldadura") ||
+      last.includes("soldar") ||
+      last.includes("pintura") ||
+      last.includes("fabricación") ||
+      last.includes("fabricacion") ||
+      last.includes("fabricar");
+
+    const mencionaObjetoDeTrabajo =
+      last.includes("chapa") ||
+      last.includes("chapas") ||
+      last.includes("pieza") ||
+      last.includes("piezas") ||
+      last.includes("estructura") ||
+      last.includes("soporte") ||
+      last.includes("soportes") ||
+      last.includes("placa") ||
+      last.includes("placas");
+
+    const mencionaMaterialSolo =
+      last.includes("acero") ||
+      last.includes("inoxidable") ||
+      last.includes("hierro") ||
+      last.includes("aluminio") ||
+      last.includes("metal") ||
+      last.includes("metalúrgico") ||
+      last.includes("metalurgico");
+
+    const mencionaServicioConcreto =
+      mencionaAccionDeTrabajo ||
+      (mencionaObjetoDeTrabajo && !consultaTecnicaInformativa);
+
+    // 6. Historial con servicio concreto
     const historialTieneServicioConcreto =
       historial.includes("corte") ||
       historial.includes("cortar") ||
-      historial.includes("chapa") ||
-      historial.includes("chapas") ||
       historial.includes("plegado") ||
       historial.includes("plegar") ||
       historial.includes("soldadura") ||
       historial.includes("soldar") ||
-      historial.includes("pieza") ||
-      historial.includes("piezas") ||
-      historial.includes("acero") ||
-      historial.includes("inoxidable") ||
-      historial.includes("hierro") ||
-      historial.includes("aluminio") ||
-      historial.includes("metal") ||
       historial.includes("fabricación") ||
       historial.includes("fabricacion") ||
       historial.includes("fabricar");
 
-    // 6. Caso genérico aceptado: "quiero cotizar un trabajo"
+    // 7. Pedido genérico aceptado: "quiero cotizar un trabajo"
     const pedidoGenericoDeCotizacion =
       (last.includes("quiero") || last.includes("necesito")) &&
       (last.includes("cotizar") ||
@@ -149,14 +200,15 @@ export async function POST(req: Request) {
     /*
       Regla:
       - Envío al interior NO dispara formulario por sí solo.
-      - Mendoza / Córdoba / expreso / transporte NO disparan formulario por sí solos.
-      - El formulario se activa cuando aparece un trabajo concreto
-        o cuando pide presupuesto y ya hay un servicio concreto en la conversación.
+      - Material + espesor NO dispara formulario por sí solo.
+      - "Inoxidable de 2 mm" NO dispara formulario si viene de una consulta técnica.
+      - El formulario se activa cuando aparece una acción concreta de trabajo,
+        un pedido explícito de cotización, o un trabajo concreto.
     */
     const intencion =
-      mencionaServicioConcreto ||
       pedidoGenericoDeCotizacion ||
-      (pidePresupuesto && historialTieneServicioConcreto);
+      mencionaServicioConcreto ||
+      (pidePresupuesto && (historialTieneServicioConcreto || mencionaMaterialSolo || mencionaObjetoDeTrabajo));
 
     if (intencion) {
       return new Response(
@@ -169,7 +221,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 7. Si no hay intención comercial concreta, responde normalmente
+    // 8. Si no hay intención comercial concreta, responde normalmente
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY!,
     });
@@ -192,7 +244,9 @@ Reglas importantes:
 - Si el usuario pregunta si realizan envíos al interior, respondé que sí pueden coordinar envíos al interior y preguntá destino y tipo de trabajo.
 - Si el usuario indica solo un destino, como Mendoza capital, respondé que pueden evaluar o coordinar el envío y preguntá qué tipo de trabajo o producto necesita cotizar.
 - Si el usuario pregunta el costo del envío sin haber definido el trabajo, explicá que depende del tamaño, peso, destino y características del trabajo. No inventes precios.
-- Si el usuario menciona un trabajo concreto como corte de chapas, corte láser, plegado, soldadura, fabricación de piezas, acero, inoxidable, hierro, aluminio o pintura, el sistema activará el formulario.
+- Si el usuario pregunta por espesores, materiales o si trabajan inoxidable/acero/aluminio, respondé como consulta técnica informativa. No lo mandes directamente a cotizar.
+- Si el usuario solo dice un material y espesor, como "inoxidable de 2 mm", no lo trates automáticamente como cotización. Explicá que para presupuestar hacen falta medidas, cantidades y detalles del trabajo.
+- Si el usuario menciona una acción concreta como cortar, plegar, soldar, fabricar, pintar, o pide cotizar/presupuesto/precio, el sistema activará el formulario.
 - No pidas datos personales dentro del chat.
 - No menciones formularios por tu cuenta.
 - No inventes precios.
