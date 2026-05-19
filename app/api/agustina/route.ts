@@ -274,7 +274,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 11. Consultas de capacidad: no disparan formulario, piden detalle
+    // 11. Consultas de capacidad: no disparan formulario, piden descripción
     const preguntaSiPuedenHacer =
       last.includes("hacen") ||
       last.includes("hace") ||
@@ -319,6 +319,7 @@ export async function POST(req: Request) {
       last.includes("estructuras") ||
       last.includes("ensamble") ||
       last.includes("ensambles") ||
+      last.includes("ensamblar") ||
       last.includes("montaje") ||
       last.includes("montajes");
 
@@ -355,7 +356,75 @@ export async function POST(req: Request) {
       );
     }
 
-    // 13. Detectar descripción concreta de trabajo
+    // 13. Si Agustina ya pidió descripción y el usuario responde con algo del trabajo, disparar formulario
+    const vieneDePedidoDeDescripcion =
+      historial.includes("describime brevemente") ||
+      historial.includes("describime qué trabajo") ||
+      historial.includes("describime que trabajo") ||
+      historial.includes("qué trabajo tenés en mente") ||
+      historial.includes("que trabajo tenes en mente") ||
+      historial.includes("qué necesitás hacer") ||
+      historial.includes("que necesitas hacer") ||
+      historial.includes("piezas, material, medidas aproximadas, cantidad") ||
+      historial.includes("material, medidas aproximadas, cantidad");
+
+    const respuestaConAlgoDeTrabajo =
+      last.includes("pieza") ||
+      last.includes("piezas") ||
+      last.includes("chapa") ||
+      last.includes("chapas") ||
+      last.includes("placa") ||
+      last.includes("placas") ||
+      last.includes("estructura") ||
+      last.includes("estructuras") ||
+      last.includes("conjunto") ||
+      last.includes("conjuntos") ||
+      last.includes("prototipo") ||
+      last.includes("prototipos") ||
+      last.includes("ensamble") ||
+      last.includes("ensambles") ||
+      last.includes("ensamblar") ||
+      last.includes("montaje") ||
+      last.includes("montajes") ||
+      last.includes("motor") ||
+      last.includes("motores") ||
+      last.includes("acero") ||
+      last.includes("inoxidable") ||
+      last.includes("hierro") ||
+      last.includes("aluminio") ||
+      last.includes("metal") ||
+      last.includes("metálica") ||
+      last.includes("metalica") ||
+      last.includes("cortar") ||
+      last.includes("corte") ||
+      last.includes("plegar") ||
+      last.includes("plegado") ||
+      last.includes("soldar") ||
+      last.includes("soldadura") ||
+      last.includes("soldarlas") ||
+      last.includes("soldarlos") ||
+      last.includes("armar") ||
+      last.includes("armado") ||
+      last.includes("fabricar") ||
+      last.includes("fabricación") ||
+      last.includes("fabricacion") ||
+      last.includes("mecanizar") ||
+      last.includes("mecanizado") ||
+      last.includes("pintar") ||
+      last.includes("pintura");
+
+    if (vieneDePedidoDeDescripcion && respuestaConAlgoDeTrabajo) {
+      return new Response(
+        JSON.stringify({
+          showForm: true,
+          reply:
+            "[FORMULARIO]\nPerfecto 👍 Para que un especialista revise tu consulta y pueda responderte correctamente, completá el siguiente formulario.",
+        }),
+        { headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // 14. Detectar descripción concreta de trabajo sin depender del paso anterior
     const describeTrabajoConcreto =
       last.includes("quiero") ||
       last.includes("necesito") ||
@@ -374,8 +443,13 @@ export async function POST(req: Request) {
       last.includes("soldarlos") ||
       last.includes("armar") ||
       last.includes("armado") ||
+      last.includes("ensamble") ||
+      last.includes("ensambles") ||
+      last.includes("ensamblar") ||
       last.includes("montar") ||
       last.includes("montaje") ||
+      last.includes("prototipo") ||
+      last.includes("prototipos") ||
       last.includes("mecanizar") ||
       last.includes("mecanizado") ||
       last.includes("pintar") ||
@@ -392,6 +466,10 @@ export async function POST(req: Request) {
       last.includes("estructuras") ||
       last.includes("conjunto") ||
       last.includes("conjuntos") ||
+      last.includes("prototipo") ||
+      last.includes("prototipos") ||
+      last.includes("ensamble") ||
+      last.includes("ensambles") ||
       last.includes("motor") ||
       last.includes("motores") ||
       last.includes("acero") ||
@@ -417,7 +495,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 14. Si no entra en nada anterior, responde con IA usando base cerrada
+    // 15. Si no entra en nada anterior, responde con IA usando base cerrada
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY!,
     });
