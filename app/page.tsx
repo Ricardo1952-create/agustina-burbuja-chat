@@ -42,7 +42,7 @@ export default function Page() {
 
     const data = await res.json();
 
-    if (data.showForm) {
+   if (data.showForm || data.reply?.toUpperCase().includes("[FORMULARIO]")) {
       setMessages([
         ...newMessages,
         {
