@@ -60,7 +60,7 @@ export async function POST(req: Request) {
       // No era JSON, seguimos normalmente
     }
 
-    // 2. Respuesta directa para horario
+    // 2. Horario de atención
     const preguntaHorario =
       last.includes("horario") ||
       last.includes("horarios") ||
@@ -80,7 +80,74 @@ export async function POST(req: Request) {
       );
     }
 
-    // 3. Detectar pedido explícito de presupuesto
+    // 3. Consulta directa sobre espesores / materiales
+    const preguntaEspesoresOMateriales =
+      last.includes("espesor") ||
+      last.includes("espesores") ||
+      last.includes("grosor") ||
+      last.includes("grosores") ||
+      last.includes("material") ||
+      last.includes("materiales") ||
+      last.includes("qué chapas") ||
+      last.includes("que chapas") ||
+      last.includes("tamaño de chapa") ||
+      last.includes("tamaños de chapa") ||
+      last.includes("medida de chapa") ||
+      last.includes("medidas de chapa");
+
+    if (preguntaEspesoresOMateriales) {
+      return new Response(
+        JSON.stringify({
+          reply:
+            "Trabajamos chapas de 1500 x 3000 mm y 2500 x 6000 mm, según el material. En la base actual figuran espesores de hasta 30 mm.\n\nMateriales disponibles: acero 1010, acero 1045, inoxidable 304, 316, 420 y 430, galvanizado, aluminio, latón y F-24.\n\nLos espesores específicos dependen del material. Por ejemplo, en inoxidable hay espesores desde 0,5 mm hasta 19 mm según calidad; en acero 1010 hasta 12,7 mm; en aluminio hasta 10 mm; y en F-24 hasta 12,7 mm.\n\nSi querés cotizar un trabajo concreto, indicame el material, espesor, medidas y cantidad.",
+        }),
+        { headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // 4. Consulta directa sobre procesos
+    const preguntaProcesos =
+      last.includes("procesos") ||
+      last.includes("servicios") ||
+      last.includes("qué hacen") ||
+      last.includes("que hacen") ||
+      last.includes("qué trabajos hacen") ||
+      last.includes("que trabajos hacen") ||
+      last.includes("capacidades");
+
+    if (preguntaProcesos) {
+      return new Response(
+        JSON.stringify({
+          reply:
+            "Los procesos disponibles son: corte láser, plegado, soldadura MIG, soldadura TIG, soldadura láser, soldadura a punto, pulido, arenado, flapeado, avellanado, biselado, esmerilado, galvanizado, mecanizado, pintura, planchado, conformado, rolado, roscado y zincado.",
+        }),
+        { headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // 5. Si viene de una consulta técnica y solo responde material/espesor, NO activar formulario
+    const respuestaMaterialEspesor =
+      (last.includes("inoxidable") ||
+        last.includes("acero") ||
+        last.includes("aluminio") ||
+        last.includes("hierro") ||
+        last.includes("galvanizado") ||
+        last.includes("latón") ||
+        last.includes("laton") ||
+        last.includes("chapa") ||
+        last.includes("chapas") ||
+        last.includes("mm") ||
+        last.includes("milimetro") ||
+        last.includes("milímetro") ||
+        last.includes("milimetros") ||
+        last.includes("milímetros")) &&
+      (historial.includes("espesor") ||
+        historial.includes("espesores") ||
+        historial.includes("grosor") ||
+        historial.includes("grosores") ||
+        historial.includes("material") ||
+        historial.includes("materiales"));
+
     const pidePresupuesto =
       last.includes("cotizar") ||
       last.includes("cotización") ||
@@ -92,54 +159,17 @@ export async function POST(req: Request) {
       last.includes("cuánto sale") ||
       last.includes("cuanto sale");
 
-    // 4. Detectar consultas técnicas o informativas que NO deben disparar formulario
-    const consultaTecnicaInformativa =
-      last.includes("espesor") ||
-      last.includes("espesores") ||
-      last.includes("grosor") ||
-      last.includes("grosores") ||
-      last.includes("material") ||
-      last.includes("materiales") ||
-      last.includes("trabajan inoxidable") ||
-      last.includes("trabajan acero") ||
-      last.includes("trabajan aluminio") ||
-      last.includes("qué materiales") ||
-      last.includes("que materiales") ||
-      last.includes("qué espesores") ||
-      last.includes("que espesores") ||
-      last.includes("hasta qué espesor") ||
-      last.includes("hasta que espesor");
-
-    const respuestaMaterialEspesor =
-      (last.includes("inoxidable") ||
-        last.includes("acero") ||
-        last.includes("aluminio") ||
-        last.includes("hierro") ||
-        last.includes("chapa") ||
-        last.includes("chapas") ||
-        last.includes("mm") ||
-        last.includes("milimetro") ||
-        last.includes("milímetro") ||
-        last.includes("milimetros") ||
-        last.includes("milímetros")) &&
-      (historial.includes("espesor") ||
-        historial.includes("espesores") ||
-        historial.includes("material") ||
-        historial.includes("materiales") ||
-        historial.includes("grosor") ||
-        historial.includes("grosores"));
-
-    if (!pidePresupuesto && (consultaTecnicaInformativa || respuestaMaterialEspesor)) {
+    if (respuestaMaterialEspesor && !pidePresupuesto) {
       return new Response(
         JSON.stringify({
           reply:
-            "Podemos trabajar distintos materiales y espesores según el tipo de pieza, el proceso requerido y las características del trabajo. Para inoxidable de 2 mm, por ejemplo, se puede evaluar el caso. Para darte una respuesta precisa harían falta medidas, cantidad y detalles del trabajo. ¿Querés consultar algo técnico o necesitás cotizar un trabajo concreto?",
+            "Ese material y espesor pueden evaluarse según el tipo de trabajo. Para una respuesta técnica más precisa hacen falta medidas, cantidad y proceso requerido. Si lo que necesitás es presupuestar un trabajo concreto, indicame que querés cotizarlo.",
         }),
         { headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // 5. Detectar trabajo concreto real
+    // 6. Detectar intención comercial real
     const mencionaAccionDeTrabajo =
       last.includes("corte") ||
       last.includes("cortar") ||
@@ -150,9 +180,20 @@ export async function POST(req: Request) {
       last.includes("soldadura") ||
       last.includes("soldar") ||
       last.includes("pintura") ||
+      last.includes("pintar") ||
       last.includes("fabricación") ||
       last.includes("fabricacion") ||
-      last.includes("fabricar");
+      last.includes("fabricar") ||
+      last.includes("mecanizado") ||
+      last.includes("mecanizar") ||
+      last.includes("rolado") ||
+      last.includes("rolar") ||
+      last.includes("roscado") ||
+      last.includes("roscar") ||
+      last.includes("biselado") ||
+      last.includes("biselar") ||
+      last.includes("avellanado") ||
+      last.includes("avellanar");
 
     const mencionaObjetoDeTrabajo =
       last.includes("chapa") ||
@@ -165,20 +206,19 @@ export async function POST(req: Request) {
       last.includes("placa") ||
       last.includes("placas");
 
-    const mencionaMaterialSolo =
+    const mencionaMaterial =
       last.includes("acero") ||
       last.includes("inoxidable") ||
       last.includes("hierro") ||
       last.includes("aluminio") ||
+      last.includes("galvanizado") ||
+      last.includes("latón") ||
+      last.includes("laton") ||
+      last.includes("f-24") ||
       last.includes("metal") ||
       last.includes("metalúrgico") ||
       last.includes("metalurgico");
 
-    const mencionaServicioConcreto =
-      mencionaAccionDeTrabajo ||
-      (mencionaObjetoDeTrabajo && !consultaTecnicaInformativa);
-
-    // 6. Historial con servicio concreto
     const historialTieneServicioConcreto =
       historial.includes("corte") ||
       historial.includes("cortar") ||
@@ -188,9 +228,12 @@ export async function POST(req: Request) {
       historial.includes("soldar") ||
       historial.includes("fabricación") ||
       historial.includes("fabricacion") ||
-      historial.includes("fabricar");
+      historial.includes("fabricar") ||
+      historial.includes("mecanizado") ||
+      historial.includes("mecanizar") ||
+      historial.includes("pintura") ||
+      historial.includes("pintar");
 
-    // 7. Pedido genérico aceptado: "quiero cotizar un trabajo"
     const pedidoGenericoDeCotizacion =
       (last.includes("quiero") || last.includes("necesito")) &&
       (last.includes("cotizar") ||
@@ -198,17 +241,19 @@ export async function POST(req: Request) {
         last.includes("trabajo"));
 
     /*
-      Regla:
+      Reglas:
+      - Preguntar por espesores, materiales o procesos NO dispara formulario.
+      - Material + espesor solo, por ejemplo "inoxidable de 2 mm", NO dispara formulario.
       - Envío al interior NO dispara formulario por sí solo.
-      - Material + espesor NO dispara formulario por sí solo.
-      - "Inoxidable de 2 mm" NO dispara formulario si viene de una consulta técnica.
-      - El formulario se activa cuando aparece una acción concreta de trabajo,
-        un pedido explícito de cotización, o un trabajo concreto.
+      - El formulario se activa si pide cotización/presupuesto/precio
+        o si menciona una acción concreta de trabajo: cortar, plegar, soldar, fabricar, etc.
     */
     const intencion =
       pedidoGenericoDeCotizacion ||
-      mencionaServicioConcreto ||
-      (pidePresupuesto && (historialTieneServicioConcreto || mencionaMaterialSolo || mencionaObjetoDeTrabajo));
+      pidePresupuesto ||
+      mencionaAccionDeTrabajo ||
+      (mencionaObjetoDeTrabajo && historialTieneServicioConcreto) ||
+      (pidePresupuesto && (mencionaMaterial || mencionaObjetoDeTrabajo));
 
     if (intencion) {
       return new Response(
@@ -221,7 +266,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 8. Si no hay intención comercial concreta, responde normalmente
+    // 7. Si no hay intención comercial concreta, responde normalmente con base técnica cerrada
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY!,
     });
@@ -236,17 +281,59 @@ Sos Agustina, asistente comercial de Lasertec Ingeniería.
 
 Respondés consultas simples de forma clara y breve.
 
-Datos fijos de la empresa:
-- El horario de atención es de 8:00 a 12:00 y de 13:00 a 17:00.
-- Si te preguntan por horarios, respondé exactamente ese horario. No digas 8 a 18.
+DATOS FIJOS DE LA EMPRESA:
+- Horario de atención: de 8:00 a 12:00 y de 13:00 a 17:00.
+- No digas que el horario es de 8 a 18.
 
-Reglas importantes:
+CHAPAS, MATERIALES Y ESPESORES:
+- Tamaños de chapa disponibles:
+  - Acero 1010: 1500 x 3000 mm, hasta 30 mm.
+  - Inoxidable 304: 2500 x 6000 mm, hasta 30 mm.
+  - Otros materiales: 1500 x 3000 mm, hasta 30 mm.
+
+Materiales y espesores registrados:
+- Inoxidable 304: 0,5 / 0,7 / 0,8 / 1 / 1,2 / 1,5 / 2 / 2,5 / 3 / 4 / 5 / 6 / 8 / 10 / 12,7 / 19 mm, según terminación B, E o LC.
+- Inoxidable 316: 1 / 1,25 / 1,5 / 2 / 2,5 / 3 / 4 / 5 / 6 / 8 mm.
+- Inoxidable 420: 1,5 / 2,5 / 3 / 4 / 5 mm.
+- Inoxidable 430: 0,5 / 1 / 1,2 / 1,5 / 2 mm, según terminación B o E.
+- Acero 1010: 0,5 / 0,6 / 0,7 / 0,9 / 1,25 / 1,65 / 2 / 2,1 / 2,5 / 3 / 3,17 / 4 / 4,76 / 6,35 / 7,92 / 9,52 / 12,7 mm.
+- Acero 1045: 3,17 / 4 / 4,76 / 6,35 / 7,92 / 9,52 / 12,7 mm.
+- Galvanizado: 0,5 / 0,7 / 0,9 / 1,2 / 1,6 / 2 / 3 / 3,2 mm.
+- Aluminio 45: 0,5 / 0,8 / 1 / 1,5 / 2 / 2,5 / 3 mm.
+- Aluminio 52: 3 / 4 / 5 / 6 / 6,4 / 8 / 10 mm.
+- Latón: 0,1 / 0,2 / 0,3 / 0,5 / 1 / 1,25 / 1,5 / 2 / 2,5 / 3 / 4 mm.
+- F-24: 3,17 / 6,35 / 7,92 / 9,52 / 12,7 mm.
+
+PROCESOS DISPONIBLES:
+- Pulido.
+- Arenado.
+- Flapeado.
+- Avellanado.
+- Biselado.
+- Corte láser.
+- Esmerilado.
+- Galvanizado.
+- Mecanizado.
+- Pintura.
+- Planchado.
+- Plegado.
+- Conformado.
+- Rolado.
+- Roscado.
+- Soldadura MIG.
+- Soldadura TIG.
+- Soldadura láser.
+- Soldadura a punto.
+- Zincado.
+
+REGLAS IMPORTANTES:
+- Si el usuario pregunta por horarios, respondé exactamente el horario fijo.
+- Si el usuario pregunta por espesores, materiales, tamaños de chapa o procesos, respondé con la base técnica anterior. No inventes datos.
+- Si el dato no está en la base técnica anterior, decí que hay que confirmarlo con el equipo técnico.
 - Si el usuario pregunta si realizan envíos al interior, respondé que sí pueden coordinar envíos al interior y preguntá destino y tipo de trabajo.
 - Si el usuario indica solo un destino, como Mendoza capital, respondé que pueden evaluar o coordinar el envío y preguntá qué tipo de trabajo o producto necesita cotizar.
 - Si el usuario pregunta el costo del envío sin haber definido el trabajo, explicá que depende del tamaño, peso, destino y características del trabajo. No inventes precios.
-- Si el usuario pregunta por espesores, materiales o si trabajan inoxidable/acero/aluminio, respondé como consulta técnica informativa. No lo mandes directamente a cotizar.
-- Si el usuario solo dice un material y espesor, como "inoxidable de 2 mm", no lo trates automáticamente como cotización. Explicá que para presupuestar hacen falta medidas, cantidades y detalles del trabajo.
-- Si el usuario menciona una acción concreta como cortar, plegar, soldar, fabricar, pintar, o pide cotizar/presupuesto/precio, el sistema activará el formulario.
+- Si el usuario solo dice un material y espesor, como "inoxidable de 2 mm", no lo trates automáticamente como cotización. Respondé técnicamente y preguntá si quiere cotizar un trabajo concreto.
 - No pidas datos personales dentro del chat.
 - No menciones formularios por tu cuenta.
 - No inventes precios.
