@@ -80,32 +80,72 @@ export async function POST(req: Request) {
       );
     }
 
-    // 3. Consulta directa sobre espesores / materiales
-    const preguntaEspesoresOMateriales =
-      last.includes("espesor") ||
-      last.includes("espesores") ||
-      last.includes("grosor") ||
-      last.includes("grosores") ||
-      last.includes("material") ||
-      last.includes("materiales") ||
-      last.includes("qué chapas") ||
-      last.includes("que chapas") ||
+    // 3. Pregunta específica por tamaños de chapa
+    const preguntaTamanosChapa =
       last.includes("tamaño de chapa") ||
       last.includes("tamaños de chapa") ||
       last.includes("medida de chapa") ||
-      last.includes("medidas de chapa");
+      last.includes("medidas de chapa") ||
+      last.includes("formato de chapa") ||
+      last.includes("formatos de chapa") ||
+      last.includes("qué tamaño de chapa") ||
+      last.includes("que tamaño de chapa") ||
+      last.includes("qué tamaños de chapa") ||
+      last.includes("que tamaños de chapa");
 
-    if (preguntaEspesoresOMateriales) {
+    if (preguntaTamanosChapa) {
       return new Response(
         JSON.stringify({
           reply:
-            "Trabajamos chapas de 1500 x 3000 mm y 2500 x 6000 mm, según el material. En la base actual figuran espesores de hasta 30 mm.\n\nMateriales disponibles: acero 1010, acero 1045, inoxidable 304, 316, 420 y 430, galvanizado, aluminio, latón y F-24.\n\nLos espesores específicos dependen del material. Por ejemplo, en inoxidable hay espesores desde 0,5 mm hasta 19 mm según calidad; en acero 1010 hasta 12,7 mm; en aluminio hasta 10 mm; y en F-24 hasta 12,7 mm.\n\nSi querés cotizar un trabajo concreto, indicame el material, espesor, medidas y cantidad.",
+            "Trabajamos chapas de 1500 x 3000 mm y 2500 x 6000 mm, según el material. Para confirmar disponibilidad en un caso puntual, conviene indicar material, espesor y cantidad.",
         }),
         { headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // 4. Consulta directa sobre procesos
+    // 4. Pregunta específica por espesores
+    const preguntaEspesores =
+      last.includes("espesor") ||
+      last.includes("espesores") ||
+      last.includes("grosor") ||
+      last.includes("grosores") ||
+      last.includes("hasta qué espesor") ||
+      last.includes("hasta que espesor");
+
+    if (preguntaEspesores) {
+      return new Response(
+        JSON.stringify({
+          reply:
+            "Los espesores dependen del material. En la base actual figuran estos rangos:\n\n- Inoxidable 304: de 0,5 mm a 19 mm, según terminación.\n- Inoxidable 316: de 1 mm a 8 mm.\n- Inoxidable 420: de 1,5 mm a 5 mm.\n- Inoxidable 430: de 0,5 mm a 2 mm.\n- Acero 1010: de 0,5 mm a 12,7 mm.\n- Acero 1045: de 3,17 mm a 12,7 mm.\n- Galvanizado: de 0,5 mm a 3,2 mm.\n- Aluminio: de 0,5 mm a 10 mm, según calidad.\n- Latón: de 0,1 mm a 4 mm.\n- F-24: de 3,17 mm a 12,7 mm.\n\nPara un caso puntual, conviene indicar material, espesor requerido, medidas y cantidad.",
+        }),
+        { headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // 5. Pregunta específica por materiales
+    const preguntaMateriales =
+      last.includes("material") ||
+      last.includes("materiales") ||
+      last.includes("qué materiales") ||
+      last.includes("que materiales") ||
+      last.includes("trabajan inoxidable") ||
+      last.includes("trabajan acero") ||
+      last.includes("trabajan aluminio") ||
+      last.includes("trabajan galvanizado") ||
+      last.includes("trabajan latón") ||
+      last.includes("trabajan laton");
+
+    if (preguntaMateriales) {
+      return new Response(
+        JSON.stringify({
+          reply:
+            "Trabajamos con acero 1010, acero 1045, inoxidable 304, inoxidable 316, inoxidable 420, inoxidable 430, galvanizado, aluminio, latón y F-24. La disponibilidad de espesores y formatos depende de cada material.",
+        }),
+        { headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // 6. Pregunta específica por procesos
     const preguntaProcesos =
       last.includes("procesos") ||
       last.includes("servicios") ||
@@ -125,7 +165,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 5. Si viene de una consulta técnica y solo responde material/espesor, NO activar formulario
+    // 7. Si viene de una consulta técnica y solo responde material/espesor, NO activar formulario
     const respuestaMaterialEspesor =
       (last.includes("inoxidable") ||
         last.includes("acero") ||
@@ -169,7 +209,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 6. Detectar intención comercial real
+    // 8. Detectar intención comercial real
     const mencionaAccionDeTrabajo =
       last.includes("corte") ||
       last.includes("cortar") ||
@@ -242,7 +282,7 @@ export async function POST(req: Request) {
 
     /*
       Reglas:
-      - Preguntar por espesores, materiales o procesos NO dispara formulario.
+      - Preguntar por espesores, materiales, tamaños de chapa o procesos NO dispara formulario.
       - Material + espesor solo, por ejemplo "inoxidable de 2 mm", NO dispara formulario.
       - Envío al interior NO dispara formulario por sí solo.
       - El formulario se activa si pide cotización/presupuesto/precio
@@ -266,7 +306,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 7. Si no hay intención comercial concreta, responde normalmente con base técnica cerrada
+    // 9. Si no hay intención comercial concreta, responde normalmente con base técnica cerrada
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY!,
     });
@@ -286,10 +326,10 @@ DATOS FIJOS DE LA EMPRESA:
 - No digas que el horario es de 8 a 18.
 
 CHAPAS, MATERIALES Y ESPESORES:
-- Tamaños de chapa disponibles:
-  - Acero 1010: 1500 x 3000 mm, hasta 30 mm.
-  - Inoxidable 304: 2500 x 6000 mm, hasta 30 mm.
-  - Otros materiales: 1500 x 3000 mm, hasta 30 mm.
+Tamaños de chapa disponibles:
+- 1500 x 3000 mm.
+- 2500 x 6000 mm.
+La disponibilidad depende del material.
 
 Materiales y espesores registrados:
 - Inoxidable 304: 0,5 / 0,7 / 0,8 / 1 / 1,2 / 1,5 / 2 / 2,5 / 3 / 4 / 5 / 6 / 8 / 10 / 12,7 / 19 mm, según terminación B, E o LC.
@@ -328,7 +368,10 @@ PROCESOS DISPONIBLES:
 
 REGLAS IMPORTANTES:
 - Si el usuario pregunta por horarios, respondé exactamente el horario fijo.
-- Si el usuario pregunta por espesores, materiales, tamaños de chapa o procesos, respondé con la base técnica anterior. No inventes datos.
+- Si el usuario pregunta por tamaños de chapa, respondé solo los tamaños de chapa.
+- Si el usuario pregunta por espesores, respondé solo los espesores/materiales.
+- Si el usuario pregunta por materiales, respondé solo materiales.
+- Si el usuario pregunta por procesos, respondé solo procesos.
 - Si el dato no está en la base técnica anterior, decí que hay que confirmarlo con el equipo técnico.
 - Si el usuario pregunta si realizan envíos al interior, respondé que sí pueden coordinar envíos al interior y preguntá destino y tipo de trabajo.
 - Si el usuario indica solo un destino, como Mendoza capital, respondé que pueden evaluar o coordinar el envío y preguntá qué tipo de trabajo o producto necesita cotizar.
