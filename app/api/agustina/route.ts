@@ -60,38 +60,34 @@ export async function POST(req: Request) {
       // No era JSON, seguimos normalmente
     }
 
-    // 2. Detectar intención comercial real
-    const palabrasDeCotizacion =
-      last.includes("cotizar") ||
-      last.includes("cotización") ||
-      last.includes("presupuesto") ||
-      last.includes("precio") ||
-      last.includes("costo") ||
-      last.includes("valor") ||
-      last.includes("cuánto sale") ||
-      last.includes("cuanto sale");
+    // 2. Respuestas directas para datos generales conocidos
+    const preguntaHorario =
+      last.includes("horario") ||
+      last.includes("horarios") ||
+      last.includes("hora atienden") ||
+      last.includes("a qué hora") ||
+      last.includes("a que hora") ||
+      last.includes("cuando atienden") ||
+      last.includes("cuándo atienden");
 
-    const palabrasDeTrabajo =
-      last.includes("trabajo") ||
-      last.includes("servicio") ||
-      last.includes("producto") ||
-      last.includes("necesito") ||
-      last.includes("quiero") ||
-      last.includes("hacer") ||
-      last.includes("fabricar") ||
-      last.includes("fabricación") ||
-      last.includes("fabricacion");
+    if (preguntaHorario) {
+      return new Response(
+        JSON.stringify({
+          reply:
+            "Nuestro horario de atención es de 8:00 a 12:00 y de 13:00 a 17:00.",
+        }),
+        { headers: { "Content-Type": "application/json" } }
+      );
+    }
 
-    const serviciosLasertec =
+    // 3. Detectar servicio/trabajo concreto de Lasertec
+    const mencionaServicioConcreto =
       last.includes("corte") ||
       last.includes("cortar") ||
       last.includes("corte láser") ||
       last.includes("corte laser") ||
       last.includes("chapa") ||
       last.includes("chapas") ||
-      last.includes("metal") ||
-      last.includes("metalúrgico") ||
-      last.includes("metalurgico") ||
       last.includes("plegado") ||
       last.includes("plegar") ||
       last.includes("soldadura") ||
@@ -102,36 +98,65 @@ export async function POST(req: Request) {
       last.includes("acero") ||
       last.includes("inoxidable") ||
       last.includes("hierro") ||
-      last.includes("aluminio");
+      last.includes("aluminio") ||
+      last.includes("metal") ||
+      last.includes("metalúrgico") ||
+      last.includes("metalurgico") ||
+      last.includes("fabricación") ||
+      last.includes("fabricacion") ||
+      last.includes("fabricar");
 
-    const envioRelacionado =
-      last.includes("envío") ||
-      last.includes("envio") ||
-      last.includes("interior") ||
-      last.includes("expreso") ||
-      last.includes("transporte") ||
-      last.includes("mendoza") ||
-      last.includes("cordoba") ||
-      last.includes("córdoba") ||
-      last.includes("rosario") ||
-      last.includes("santa fe");
+    // 4. Detectar pedido explícito de presupuesto
+    const pidePresupuesto =
+      last.includes("cotizar") ||
+      last.includes("cotización") ||
+      last.includes("cotizacion") ||
+      last.includes("presupuesto") ||
+      last.includes("precio") ||
+      last.includes("costo") ||
+      last.includes("valor") ||
+      last.includes("cuánto sale") ||
+      last.includes("cuanto sale");
 
-    const historialTieneConsultaComercial =
-      historial.includes("cotizar") ||
-      historial.includes("presupuesto") ||
-      historial.includes("precio") ||
-      historial.includes("costo") ||
-      historial.includes("envío") ||
-      historial.includes("envio") ||
-      historial.includes("interior") ||
-      historial.includes("trabajo") ||
-      historial.includes("servicio");
+    // 5. Detectar si en el historial ya se habló de un servicio concreto
+    const historialTieneServicioConcreto =
+      historial.includes("corte") ||
+      historial.includes("cortar") ||
+      historial.includes("chapa") ||
+      historial.includes("chapas") ||
+      historial.includes("plegado") ||
+      historial.includes("plegar") ||
+      historial.includes("soldadura") ||
+      historial.includes("soldar") ||
+      historial.includes("pieza") ||
+      historial.includes("piezas") ||
+      historial.includes("acero") ||
+      historial.includes("inoxidable") ||
+      historial.includes("hierro") ||
+      historial.includes("aluminio") ||
+      historial.includes("metal") ||
+      historial.includes("fabricación") ||
+      historial.includes("fabricacion") ||
+      historial.includes("fabricar");
 
+    // 6. Caso genérico aceptado: "quiero cotizar un trabajo"
+    const pedidoGenericoDeCotizacion =
+      (last.includes("quiero") || last.includes("necesito")) &&
+      (last.includes("cotizar") ||
+        last.includes("presupuesto") ||
+        last.includes("trabajo"));
+
+    /*
+      Regla:
+      - Envío al interior NO dispara formulario por sí solo.
+      - Mendoza / Córdoba / expreso / transporte NO disparan formulario por sí solos.
+      - El formulario se activa cuando aparece un trabajo concreto
+        o cuando pide presupuesto y ya hay un servicio concreto en la conversación.
+    */
     const intencion =
-      palabrasDeCotizacion ||
-      serviciosLasertec ||
-      (historialTieneConsultaComercial && envioRelacionado) ||
-      (historialTieneConsultaComercial && palabrasDeTrabajo);
+      mencionaServicioConcreto ||
+      pedidoGenericoDeCotizacion ||
+      (pidePresupuesto && historialTieneServicioConcreto);
 
     if (intencion) {
       return new Response(
@@ -144,7 +169,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 3. Si no hay intención comercial clara, responde normalmente
+    // 7. Si no hay intención comercial concreta, responde normalmente
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY!,
     });
@@ -157,14 +182,20 @@ export async function POST(req: Request) {
           content: `
 Sos Agustina, asistente comercial de Lasertec Ingeniería.
 
-Tu objetivo es responder consultas simples y detectar oportunidades comerciales.
+Respondés consultas simples de forma clara y breve.
 
-IMPORTANTE:
-- Si el usuario pregunta datos generales, respondé normalmente.
-- Si el usuario menciona un trabajo concreto, como corte de chapas, corte láser, plegado, soldadura, fabricación de piezas, materiales, cantidades, medidas, precio, presupuesto o envío asociado a un trabajo, el sistema debe activar el formulario.
-- No inventes precios.
-- No pidas datos de contacto dentro del chat.
+Datos fijos de la empresa:
+- El horario de atención es de 8:00 a 12:00 y de 13:00 a 17:00.
+- Si te preguntan por horarios, respondé exactamente ese horario. No digas 8 a 18.
+
+Reglas importantes:
+- Si el usuario pregunta si realizan envíos al interior, respondé que sí pueden coordinar envíos al interior y preguntá destino y tipo de trabajo.
+- Si el usuario indica solo un destino, como Mendoza capital, respondé que pueden evaluar o coordinar el envío y preguntá qué tipo de trabajo o producto necesita cotizar.
+- Si el usuario pregunta el costo del envío sin haber definido el trabajo, explicá que depende del tamaño, peso, destino y características del trabajo. No inventes precios.
+- Si el usuario menciona un trabajo concreto como corte de chapas, corte láser, plegado, soldadura, fabricación de piezas, acero, inoxidable, hierro, aluminio o pintura, el sistema activará el formulario.
+- No pidas datos personales dentro del chat.
 - No menciones formularios por tu cuenta.
+- No inventes precios.
 - Respondé en español, breve y claro.
 `,
         },
