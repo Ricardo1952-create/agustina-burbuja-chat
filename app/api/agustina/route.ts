@@ -107,7 +107,30 @@ export async function POST(req: Request) {
       );
     }
 
-    // 4. Envíos al interior: no dispara formulario por sí solo
+    // 4. Pedido de equipo técnico: responder comercialmente, sin cortar la conversación
+    const pideEquipoTecnico =
+      last.includes("equipo técnico") ||
+      last.includes("equipo tecnico") ||
+      last.includes("técnico") ||
+      last.includes("tecnico") ||
+      last.includes("conectame") ||
+      last.includes("contactame") ||
+      last.includes("comunicarme") ||
+      last.includes("hablar con alguien") ||
+      last.includes("hablar con un técnico") ||
+      last.includes("hablar con un tecnico");
+
+    if (pideEquipoTecnico && !pidePresupuesto) {
+      return new Response(
+        JSON.stringify({
+          reply:
+            "Para que el equipo técnico pueda evaluar bien tu consulta, describime brevemente el trabajo: qué necesitás hacer, material, medidas aproximadas, cantidad y proceso requerido.",
+        }),
+        { headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // 5. Envíos al interior: no dispara formulario por sí solo
     if (preguntaEnvio && !pidePresupuesto) {
       return new Response(
         JSON.stringify({
@@ -125,7 +148,9 @@ export async function POST(req: Request) {
       !historial.includes("plegado") &&
       !historial.includes("soldadura") &&
       !historial.includes("fabricar") &&
-      !historial.includes("fabricación")
+      !historial.includes("fabricación") &&
+      !historial.includes("armado") &&
+      !historial.includes("conjunto")
     ) {
       return new Response(
         JSON.stringify({
@@ -136,7 +161,45 @@ export async function POST(req: Request) {
       );
     }
 
-    // 5. Consulta informativa sobre si realizan un proceso
+    // 6. Consulta sobre trabajos especiales o armados: pedir descripción, NO formulario directo
+    const consultaTrabajoEspecial =
+      (last.includes("hacen") ||
+        last.includes("realizan") ||
+        last.includes("ofrecen") ||
+        last.includes("trabajan con") ||
+        last.includes("pueden hacer") ||
+        last.includes("se puede hacer") ||
+        last.includes("arman") ||
+        last.includes("armados")) &&
+      (last.includes("armado") ||
+        last.includes("armados") ||
+        last.includes("conjunto") ||
+        last.includes("conjuntos") ||
+        last.includes("subconjunto") ||
+        last.includes("subconjuntos") ||
+        last.includes("ensamble") ||
+        last.includes("ensambles") ||
+        last.includes("montaje") ||
+        last.includes("montajes") ||
+        last.includes("estructura") ||
+        last.includes("estructuras") ||
+        last.includes("trabajo especial") ||
+        last.includes("trabajos especiales") ||
+        last.includes("desarrollo") ||
+        last.includes("prototipo") ||
+        last.includes("prototipos"));
+
+    if (consultaTrabajoEspecial && !pidePresupuesto) {
+      return new Response(
+        JSON.stringify({
+          reply:
+            "Podemos evaluar ese tipo de trabajo. Para orientarte mejor, describime qué necesitás hacer, qué piezas incluye, material, medidas aproximadas, cantidad y si requiere corte, plegado, soldadura u otro proceso.",
+        }),
+        { headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // 7. Consulta informativa sobre si realizan un proceso
     const preguntaSiRealizanProceso =
       (last.includes("realizan") ||
         last.includes("hacen") ||
@@ -170,13 +233,13 @@ export async function POST(req: Request) {
       return new Response(
         JSON.stringify({
           reply:
-            "Sí, realizamos esos procesos. Los procesos disponibles incluyen corte láser, plegado, soldadura MIG, soldadura TIG, soldadura láser, soldadura a punto, mecanizado, pintura, rolado, roscado, biselado, avellanado y otros trabajos complementarios. Para un caso puntual, conviene indicar material, medidas, cantidad y proceso requerido.",
+            "Sí, realizamos esos procesos. Para un caso puntual, conviene indicar material, medidas, cantidad y proceso requerido.",
         }),
         { headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // 6. Consulta combinada por tamaños y espesores de chapa
+    // 8. Consulta combinada por tamaños y espesores de chapa
     const preguntaTamanosYEspesores =
       (last.includes("tamaño") ||
         last.includes("tamaños") ||
@@ -199,7 +262,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 7. Consulta específica de disponibilidad de tamaño + material
+    // 9. Consulta específica de disponibilidad de tamaño + material
     const preguntaDisponibilidadChapa =
       (last.includes("trabajan") ||
         last.includes("utilizan") ||
@@ -240,7 +303,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 8. Tamaños de chapa
+    // 10. Tamaños de chapa
     const preguntaTamanosChapa =
       last.includes("tamaño de chapa") ||
       last.includes("tamaños de chapa") ||
@@ -263,7 +326,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 9. Espesores
+    // 11. Espesores
     const preguntaEspesores =
       last.includes("espesor") ||
       last.includes("espesores") ||
@@ -282,7 +345,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 10. Materiales
+    // 12. Materiales
     const preguntaMateriales =
       last.includes("material") ||
       last.includes("materiales") ||
@@ -302,7 +365,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 11. Procesos existentes
+    // 13. Procesos existentes
     const preguntaProcesos =
       last.includes("procesos") ||
       last.includes("servicios") ||
@@ -322,7 +385,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 12. Si viene de una consulta técnica y solo responde material/espesor, NO activar formulario
+    // 14. Si viene de una consulta técnica y solo responde material/espesor, NO activar formulario
     const respuestaMaterialEspesor =
       (last.includes("inoxidable") ||
         last.includes("acero") ||
@@ -352,7 +415,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 13. Detectar intención comercial real
+    // 15. Detectar intención comercial real
     const mencionaAccionDeTrabajo =
       last.includes("corte") ||
       last.includes("cortar") ||
@@ -376,7 +439,14 @@ export async function POST(req: Request) {
       last.includes("biselado") ||
       last.includes("biselar") ||
       last.includes("avellanado") ||
-      last.includes("avellanar");
+      last.includes("avellanar") ||
+      last.includes("armar") ||
+      last.includes("armado") ||
+      last.includes("armados") ||
+      last.includes("ensamblar") ||
+      last.includes("ensamble") ||
+      last.includes("montar") ||
+      last.includes("montaje");
 
     const mencionaObjetoDeTrabajo =
       last.includes("chapa") ||
@@ -384,10 +454,15 @@ export async function POST(req: Request) {
       last.includes("pieza") ||
       last.includes("piezas") ||
       last.includes("estructura") ||
+      last.includes("estructuras") ||
       last.includes("soporte") ||
       last.includes("soportes") ||
       last.includes("placa") ||
-      last.includes("placas");
+      last.includes("placas") ||
+      last.includes("conjunto") ||
+      last.includes("conjuntos") ||
+      last.includes("subconjunto") ||
+      last.includes("subconjuntos");
 
     const mencionaMaterial =
       last.includes("acero") ||
@@ -415,7 +490,11 @@ export async function POST(req: Request) {
       historial.includes("chapa") ||
       historial.includes("chapas") ||
       historial.includes("inoxidable") ||
-      historial.includes("acero");
+      historial.includes("acero") ||
+      historial.includes("armado") ||
+      historial.includes("armados") ||
+      historial.includes("conjunto") ||
+      historial.includes("conjuntos");
 
     const pedidoGenericoDeCotizacion =
       (last.includes("quiero") || last.includes("necesito")) &&
@@ -426,17 +505,17 @@ export async function POST(req: Request) {
     /*
       Reglas:
       - Preguntar si realizan un servicio NO dispara formulario.
+      - Preguntar por trabajos especiales NO dispara formulario directo: se pide descripción.
+      - Cuando el usuario describe un trabajo concreto, sí dispara formulario.
       - Preguntar por espesores, materiales, tamaños de chapa o procesos NO dispara formulario.
       - Material + espesor solo, por ejemplo "inoxidable de 2 mm", NO dispara formulario.
       - Envío al interior NO dispara formulario por sí solo.
       - "Cotizalo", "cotizame", "cotízalo", "cotízame" SÍ disparan formulario.
-      - El formulario se activa si pide cotización/presupuesto/precio
-        o si menciona una acción concreta de trabajo sin formato de pregunta informativa.
     */
     const intencion =
       pedidoGenericoDeCotizacion ||
       pidePresupuesto ||
-      (mencionaAccionDeTrabajo && !preguntaSiRealizanProceso) ||
+      (mencionaAccionDeTrabajo && !preguntaSiRealizanProceso && !consultaTrabajoEspecial) ||
       (mencionaObjetoDeTrabajo && historialTieneServicioConcreto) ||
       (pidePresupuesto && (mencionaMaterial || mencionaObjetoDeTrabajo));
 
@@ -445,13 +524,13 @@ export async function POST(req: Request) {
         JSON.stringify({
           showForm: true,
           reply:
-            "[FORMULARIO]\nPerfecto 👍 Para poder presupuestar el trabajo y, si corresponde, coordinar el envío, completá el siguiente formulario. Un especialista va a revisar tu caso y se va a comunicar con vos.",
+            "[FORMULARIO]\nPerfecto 👍 Para que un especialista revise tu consulta y pueda responderte correctamente, completá el siguiente formulario.",
         }),
         { headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // 14. Si no hay intención comercial concreta, responde normalmente con base técnica cerrada
+    // 16. Si no hay intención comercial concreta, responde normalmente con base técnica cerrada
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY!,
     });
@@ -507,6 +586,7 @@ REGLAS IMPORTANTES:
 - Si el usuario pregunta por materiales, respondé solo: acero 1010, inoxidable 304 y otros materiales. No inventes otros materiales específicos.
 - Si el usuario pregunta si trabajan con chapa 1500 x 3000 en inoxidable 304, respondé que la base actual indica inoxidable 304 en 2500 x 6000 mm y que 1500 x 3000 mm en inoxidable 304 debe confirmarse con el equipo técnico.
 - Si el usuario pregunta si realizan plegado, soldadura, corte láser u otro proceso, respondé como consulta informativa. No lo mandes al formulario.
+- Si el usuario pregunta por armados de conjuntos, ensambles, montajes o trabajos especiales, respondé que se puede evaluar y pedí que describa el trabajo, piezas, material, medidas y cantidad.
 - Si el usuario pregunta por procesos, respondé solo procesos.
 - Si el dato no está en la base técnica anterior, decí que hay que confirmarlo con el equipo técnico.
 - Si el usuario pregunta si realizan envíos al interior, respondé que sí pueden coordinar envíos al interior y preguntá destino y qué tipo de trabajo o producto tiene en mente.
