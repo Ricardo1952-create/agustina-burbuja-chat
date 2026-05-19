@@ -112,7 +112,7 @@ export async function POST(req: Request) {
       return new Response(
         JSON.stringify({
           reply:
-            "Sí, podemos coordinar envíos al interior. Para orientarte mejor, indicame el destino y qué tipo de trabajo o producto necesitás enviar.",
+            "Sí, podemos coordinar envíos al interior. Para orientarte mejor, indicame el destino y qué tipo de trabajo o producto tenés en mente.",
         }),
         { headers: { "Content-Type": "application/json" } }
       );
@@ -130,7 +130,7 @@ export async function POST(req: Request) {
       return new Response(
         JSON.stringify({
           reply:
-            "El costo del envío depende del destino, tamaño, peso y características del trabajo. Para estimarlo primero necesitamos saber qué pieza, chapa o trabajo querés realizar.",
+            "El costo del envío depende del destino, tamaño, peso y características del trabajo. Para estimarlo primero necesitamos saber qué pieza, chapa o trabajo tenés en mente.",
         }),
         { headers: { "Content-Type": "application/json" } }
       );
@@ -346,7 +346,7 @@ export async function POST(req: Request) {
       return new Response(
         JSON.stringify({
           reply:
-            "Ese material y espesor pueden evaluarse según el tipo de trabajo. Para una respuesta técnica más precisa hacen falta medidas, cantidad y proceso requerido. Si lo que necesitás es presupuestar un trabajo concreto, indicame que querés cotizarlo.",
+            "Ese material y espesor pueden evaluarse según el tipo de trabajo. Para una respuesta técnica más precisa hacen falta medidas, cantidad y proceso requerido. Si lo que tenés en mente es un trabajo concreto, puedo orientarte con la información necesaria.",
         }),
         { headers: { "Content-Type": "application/json" } }
       );
@@ -509,10 +509,10 @@ REGLAS IMPORTANTES:
 - Si el usuario pregunta si realizan plegado, soldadura, corte láser u otro proceso, respondé como consulta informativa. No lo mandes al formulario.
 - Si el usuario pregunta por procesos, respondé solo procesos.
 - Si el dato no está en la base técnica anterior, decí que hay que confirmarlo con el equipo técnico.
-- Si el usuario pregunta si realizan envíos al interior, respondé que sí pueden coordinar envíos al interior y preguntá destino y tipo de trabajo.
-- Si el usuario indica solo un destino, como Mendoza capital, respondé que pueden evaluar o coordinar el envío y preguntá qué tipo de trabajo o producto necesita cotizar.
+- Si el usuario pregunta si realizan envíos al interior, respondé que sí pueden coordinar envíos al interior y preguntá destino y qué tipo de trabajo o producto tiene en mente.
+- Si el usuario indica solo un destino, como Mendoza capital, respondé que pueden evaluar o coordinar el envío y preguntá qué tipo de trabajo o producto tiene en mente.
 - Si el usuario pregunta el costo del envío sin haber definido el trabajo, explicá que depende del tamaño, peso, destino y características del trabajo. No inventes precios.
-- Si el usuario solo dice un material y espesor, como "inoxidable de 2 mm", no lo trates automáticamente como cotización. Respondé técnicamente y preguntá si quiere cotizar un trabajo concreto.
+- Si el usuario solo dice un material y espesor, como "inoxidable de 2 mm", no lo trates automáticamente como cotización. Respondé técnicamente y preguntá si quiere consultar por un trabajo concreto.
 - No pidas datos personales dentro del chat.
 - No menciones formularios por tu cuenta.
 - No inventes precios.
