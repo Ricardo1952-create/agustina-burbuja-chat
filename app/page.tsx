@@ -16,8 +16,9 @@ export default function Page() {
   const [formularioAbierto, setFormularioAbierto] = useState(false);
 
   const [form, setForm] = useState({
+    empresa: "",
     nombre: "",
-    telefono: "",
+    whatsapp: "",
     detalle: "",
   });
 
@@ -42,7 +43,7 @@ export default function Page() {
 
     const data = await res.json();
 
-   if (data.showForm || data.reply?.toUpperCase().includes("[FORMULARIO]")) {
+    if (data.showForm || data.reply?.toUpperCase().includes("[FORMULARIO]")) {
       setMessages([
         ...newMessages,
         {
@@ -94,8 +95,9 @@ export default function Page() {
     ]);
 
     setForm({
+      empresa: "",
       nombre: "",
-      telefono: "",
+      whatsapp: "",
       detalle: "",
     });
   };
@@ -125,8 +127,7 @@ export default function Page() {
       >
         {messages.map((m, i) => (
           <div key={i} style={{ marginBottom: 8 }}>
-            <b>{m.role === "user" ? "Vos" : "Agustina"}:</b>{" "}
-            {m.content}
+            <b>{m.role === "user" ? "Vos" : "Agustina"}:</b> {m.content}
           </div>
         ))}
       </div>
@@ -190,6 +191,15 @@ export default function Page() {
           <h4>Solicitud de contacto</h4>
 
           <input
+            placeholder="Empresa"
+            value={form.empresa}
+            onChange={(e) =>
+              setForm({ ...form, empresa: e.target.value })
+            }
+            style={{ width: "100%", marginBottom: 10, padding: 8 }}
+          />
+
+          <input
             placeholder="Nombre"
             value={form.nombre}
             onChange={(e) =>
@@ -199,10 +209,10 @@ export default function Page() {
           />
 
           <input
-            placeholder="Teléfono"
-            value={form.telefono}
+            placeholder="WhatsApp"
+            value={form.whatsapp}
             onChange={(e) =>
-              setForm({ ...form, telefono: e.target.value })
+              setForm({ ...form, whatsapp: e.target.value })
             }
             style={{ width: "100%", marginBottom: 10, padding: 8 }}
           />
