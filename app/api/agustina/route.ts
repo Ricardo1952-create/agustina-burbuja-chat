@@ -20,8 +20,9 @@ export async function POST(req: Request) {
       const posibleJSON = JSON.parse(lastMessage);
 
       if (
+        posibleJSON.empresa &&
         posibleJSON.nombre &&
-        posibleJSON.telefono &&
+        posibleJSON.whatsapp &&
         posibleJSON.detalle
       ) {
         const respuestaWebhook = await fetch(WEBHOOK, {
@@ -30,10 +31,10 @@ export async function POST(req: Request) {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
+            empresa: posibleJSON.empresa || "",
             nombre: posibleJSON.nombre || "",
-            telefono: posibleJSON.telefono || "",
+            telefono: posibleJSON.whatsapp || "",
             email: "",
-            empresa: "",
             descripcion: posibleJSON.detalle || "",
           }),
         });
