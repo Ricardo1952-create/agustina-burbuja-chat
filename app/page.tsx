@@ -90,7 +90,7 @@ export default function Page() {
       {
         role: "assistant",
         content:
-          "Perfecto 👍 Ya registramos tu solicitud. Un asesor se va a comunicar con vos a la brevedad.",
+         "Perfecto 👍 Ya registramos tu solicitud. Un asesor revisará tu consulta y se comunicará con vos dentro de nuestro horario de atención, de lunes a viernes de 8 a 17 hs.",
       },
     ]);
 
