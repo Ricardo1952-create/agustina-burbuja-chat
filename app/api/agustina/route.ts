@@ -52,7 +52,7 @@ export async function POST(req: Request) {
         return new Response(
           JSON.stringify({
             reply:
-              "Perfecto 👍 Ya registramos tu solicitud. Un asesor se va a comunicar con vos a la brevedad.",
+              "Perfecto 👍 Ya registramos tu solicitud. Un asesor revisará tu consulta y se comunicará con vos dentro de nuestro horario de atención, de lunes a viernes de 8 a 17 hs.",
           }),
           { headers: { "Content-Type": "application/json" } }
         );
