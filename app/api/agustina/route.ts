@@ -100,7 +100,34 @@ export async function POST(req: Request) {
       );
     }
 
-    // 4. Tamaños y espesores juntos
+    // 4. Pedido de contacto con asesor humano
+    const pideAsesorHumano =
+      last.includes("asesor humano") ||
+      last.includes("hablar con una persona") ||
+      last.includes("hablar con alguien") ||
+      last.includes("hablar con un humano") ||
+      last.includes("contactar con un humano") ||
+      last.includes("contactarme con un humano") ||
+      last.includes("comunicarme con un humano") ||
+      last.includes("contactar con una persona") ||
+      last.includes("contactarme con una persona") ||
+      last.includes("comunicarme con una persona") ||
+      last.includes("quiero hablar con un humano") ||
+      last.includes("quiero hablar con una persona") ||
+      last.includes("necesito hablar con un humano") ||
+      last.includes("necesito hablar con una persona");
+
+    if (pideAsesorHumano) {
+      return new Response(
+        JSON.stringify({
+          reply:
+            "Sí, podés comunicarte con un asesor humano. Para atención directa, hacé clic en la burbuja de WhatsApp que aparece en esta misma página web. Nuestro horario de atención es de lunes a viernes de 8:00 a 17:00.",
+        }),
+        { headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // 5. Tamaños y espesores juntos
     const preguntaTamanosYEspesores =
       (last.includes("tamaño") ||
         last.includes("tamaños") ||
@@ -123,7 +150,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 5. Tamaños de chapa
+    // 6. Tamaños de chapa
     const preguntaTamanosChapa =
       last.includes("tamaño de chapa") ||
       last.includes("tamaños de chapa") ||
@@ -146,7 +173,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 6. Espesores
+    // 7. Espesores
     const preguntaEspesores =
       last.includes("espesor") ||
       last.includes("espesores") ||
@@ -165,7 +192,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 7. Materiales
+    // 8. Materiales
     const preguntaMateriales =
       last.includes("material") ||
       last.includes("materiales") ||
@@ -185,7 +212,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 8. Disponibilidad de chapa con tamaño y material
+    // 9. Disponibilidad de chapa con tamaño y material
     const preguntaDisponibilidadChapa =
       (last.includes("trabajan") ||
         last.includes("utilizan") ||
@@ -226,7 +253,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 9. Procesos disponibles
+    // 10. Procesos disponibles
     const preguntaProcesos =
       last.includes("procesos") ||
       last.includes("servicios") ||
@@ -246,7 +273,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 10. Envíos al interior
+    // 11. Envíos al interior
     const preguntaEnvio =
       last.includes("envío") ||
       last.includes("envio") ||
@@ -275,7 +302,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 11. Consultas de capacidad: no disparan formulario, piden descripción
+    // 12. Consultas de capacidad: no disparan formulario, piden descripción
     const preguntaSiPuedenHacer =
       last.includes("hacen") ||
       last.includes("hace") ||
@@ -334,7 +361,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 12. Pedido de equipo técnico: pedir descripción
+    // 13. Pedido de equipo técnico: pedir descripción
     const pideEquipoTecnico =
       last.includes("equipo técnico") ||
       last.includes("equipo tecnico") ||
@@ -343,7 +370,6 @@ export async function POST(req: Request) {
       last.includes("conectame") ||
       last.includes("contactame") ||
       last.includes("comunicarme") ||
-      last.includes("hablar con alguien") ||
       last.includes("hablar con un técnico") ||
       last.includes("hablar con un tecnico");
 
@@ -357,7 +383,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 13. Si Agustina ya pidió descripción y el usuario responde con algo del trabajo, disparar formulario
+    // 14. Si Agustina ya pidió descripción y el usuario responde con algo del trabajo, disparar formulario
     const vieneDePedidoDeDescripcion =
       historial.includes("describime brevemente") ||
       historial.includes("describime qué trabajo") ||
@@ -425,7 +451,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 14. Detectar descripción concreta de trabajo sin depender del paso anterior
+    // 15. Detectar descripción concreta de trabajo sin depender del paso anterior
     const describeTrabajoConcreto =
       last.includes("quiero") ||
       last.includes("necesito") ||
@@ -496,7 +522,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 15. Si no entra en nada anterior, responde con IA usando base cerrada
+    // 16. Si no entra en nada anterior, responde con IA usando base cerrada
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY!,
     });
@@ -549,6 +575,7 @@ REGLAS:
 - Si describen un trabajo concreto, el sistema activará el formulario.
 - No pidas datos personales dentro del chat.
 - No menciones formularios por tu cuenta.
+- Si el usuario pide hablar con un asesor humano, respondé: "Sí, podés comunicarte con un asesor humano. Para atención directa, hacé clic en la burbuja de WhatsApp que aparece en esta misma página web. Nuestro horario de atención es de lunes a viernes de 8:00 a 17:00."
 - Respondé en español, breve y claro.
 `,
         },
