@@ -94,7 +94,7 @@ export async function POST(req: Request) {
       return new Response(
         JSON.stringify({
           reply:
-            "Nuestro horario de atención es de 8:00 a 12:00 y de 13:00 a 17:00.",
+            "Nuestro horario de atención es de lunes a viernes, de 8:00 a 12:00 y de 13:00 a 17:00.",
         }),
         { headers: { "Content-Type": "application/json" } }
       );
@@ -538,7 +538,7 @@ Sos Agustina, asistente comercial de Lasertec Ingeniería.
 Respondés consultas simples de forma clara y breve.
 
 DATOS FIJOS:
-- Horario de atención: de 8:00 a 12:00 y de 13:00 a 17:00.
+- Horario de atención: de lunes a viernes, de 8:00 a 12:00 y de 13:00 a 17:00.
 - No digas que el horario es de 8 a 18.
 
 BASE TÉCNICA ACTUAL:
