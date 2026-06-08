@@ -154,6 +154,55 @@ export async function POST(req: Request) {
       );
     }
 
+    // 6. Consultas sobre trabajos en proceso / pedidos ya encargados
+    const consultaTrabajoEnProceso =
+      last.includes("cómo va mi trabajo") ||
+      last.includes("como va mi trabajo") ||
+      last.includes("cómo va el trabajo") ||
+      last.includes("como va el trabajo") ||
+      last.includes("cómo va mi pedido") ||
+      last.includes("como va mi pedido") ||
+      last.includes("estado de mi trabajo") ||
+      last.includes("estado del trabajo") ||
+      last.includes("estado de mi pedido") ||
+      last.includes("avance de mi trabajo") ||
+      last.includes("avance del trabajo") ||
+      last.includes("avance de mi pedido") ||
+      last.includes("fecha de entrega") ||
+      last.includes("fecha estimada") ||
+      last.includes("cuándo entregan") ||
+      last.includes("cuando entregan") ||
+      last.includes("cuándo me entregan") ||
+      last.includes("cuando me entregan") ||
+      last.includes("cuándo terminan") ||
+      last.includes("cuando terminan") ||
+      last.includes("cuándo está listo") ||
+      last.includes("cuando está listo") ||
+      last.includes("cuando esta listo") ||
+      last.includes("ya está listo") ||
+      last.includes("ya esta listo") ||
+      last.includes("puedo retirar") ||
+      last.includes("retirar hoy") ||
+      last.includes("retiro de piezas") ||
+      last.includes("pedido ya realizado") ||
+      last.includes("trabajo ya encargado") ||
+      last.includes("pedido aprobado") ||
+      last.includes("presupuesto aprobado") ||
+      last.includes("mandé a hacer") ||
+      last.includes("mande a hacer") ||
+      last.includes("encargué un trabajo") ||
+      last.includes("encargue un trabajo");
+
+    if (consultaTrabajoEnProceso) {
+      return new Response(
+        JSON.stringify({
+          reply:
+            "Entiendo. Para consultas sobre un trabajo que ya está en proceso, como fecha de entrega, avance, retiro o estado del pedido, te pido que te comuniques directamente por WhatsApp en horario de atención, de lunes a viernes de 8:00 a 17:00 hs. Así pueden verificar el estado real del trabajo y darte una respuesta precisa.",
+        }),
+        { headers: { "Content-Type": "application/json" } }
+      );
+    }
+
     // 6. Tamaños y espesores juntos
     const preguntaTamanosYEspesores =
       (last.includes("tamaño") ||
@@ -629,6 +678,9 @@ REGLAS:
 - No pidas datos personales dentro del chat.
 - No menciones formularios por tu cuenta.
 - Si el usuario pide hablar con un asesor humano, respondé: "Sí, podés comunicarte con un asesor humano. Para atención directa, hacé clic en la burbuja de WhatsApp que aparece en esta misma página web. Nuestro horario de atención es de lunes a viernes de 8:00 a 17:00."
+- Si el usuario consulta por el estado de un trabajo en proceso, fecha estimada de entrega, avance de producción, retiro de piezas, demora, pedido ya realizado, presupuesto aprobado o cualquier información relacionada con un trabajo específico ya encargado, no inventes fechas, estados de avance ni compromisos de entrega.
+- Para consultas sobre trabajos en proceso, respondé: "Entiendo. Para consultas sobre un trabajo que ya está en proceso, como fecha de entrega, avance, retiro o estado del pedido, te pido que te comuniques directamente por WhatsApp en horario de atención, de lunes a viernes de 8:00 a 17:00 hs. Así pueden verificar el estado real del trabajo y darte una respuesta precisa."
+- No registres consultas sobre trabajos en proceso como prospectos nuevos.
 - Respondé en español, breve y claro.
 `,
         },
