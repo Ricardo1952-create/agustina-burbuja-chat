@@ -144,7 +144,7 @@ export async function POST(req: Request) {
       return new Response(
         JSON.stringify({
           reply:
-            "Según la base actual, los tamaños y espesores de chapa disponibles son:\n\n- Acero 1010: chapa 1500 x 3000 mm, hasta 30 mm de espesor.\n- Inoxidable 304: chapa 2500 x 6000 mm, hasta 30 mm de espesor.\n- Otros materiales: chapa 1500 x 3000 mm, hasta 30 mm de espesor.\n\nPara confirmar un caso puntual, conviene indicar material, medidas, cantidad y proceso requerido.",
+            "Los tamaños y espesores de chapa disponibles son:\n\n- Acero al carbono: chapa 1500 x 3000 mm, hasta 30 mm de espesor.\n- Acero inoxidable: chapa 2500 x 6000 mm, hasta 30 mm de espesor.\n- Otros materiales: consultar disponibilidad según material, espesor, medidas y proceso requerido.\n\nPara confirmar un caso puntual, conviene indicar material, medidas, cantidad y proceso requerido.",
         }),
         { headers: { "Content-Type": "application/json" } }
       );
@@ -167,7 +167,7 @@ export async function POST(req: Request) {
       return new Response(
         JSON.stringify({
           reply:
-            "Los tamaños de chapa disponibles son:\n\n- Acero 1010: 1500 x 3000 mm.\n- Inoxidable 304: 2500 x 6000 mm.\n- Otros materiales: 1500 x 3000 mm.\n\nLa disponibilidad final puede depender del material y del trabajo a realizar.",
+            "Los tamaños de chapa disponibles son:\n\n- Acero al carbono: 1500 x 3000 mm.\n- Acero inoxidable: 2500 x 6000 mm.\n- Otros materiales: consultar disponibilidad según el trabajo a realizar.\n\nLa disponibilidad final puede depender del material y del trabajo a realizar.",
         }),
         { headers: { "Content-Type": "application/json" } }
       );
@@ -186,7 +186,7 @@ export async function POST(req: Request) {
       return new Response(
         JSON.stringify({
           reply:
-            "Según la base actual, los espesores disponibles llegan hasta 30 mm.\n\nDetalle:\n- Acero 1010: hasta 30 mm.\n- Inoxidable 304: hasta 30 mm.\n- Otros materiales: hasta 30 mm.\n\nPara confirmar un caso puntual, conviene indicar material, medidas, cantidad y proceso requerido.",
+            "Los espesores disponibles llegan hasta 30 mm.\n\nDetalle:\n- Acero al carbono: hasta 30 mm.\n- Acero inoxidable: hasta 30 mm.\n- Otros materiales: consultar disponibilidad según material, medidas y proceso requerido.\n\nPara confirmar un caso puntual, conviene indicar material, medidas, cantidad y proceso requerido.",
         }),
         { headers: { "Content-Type": "application/json" } }
       );
@@ -206,7 +206,7 @@ export async function POST(req: Request) {
       return new Response(
         JSON.stringify({
           reply:
-            "Según la base actual, se trabaja con acero 1010, inoxidable 304 y otros materiales. Para confirmar disponibilidad en un caso puntual, conviene indicar material, espesor, medidas y proceso requerido.",
+            "Trabajamos con todos los materiales, excepto cemento y vidrio. Principalmente trabajamos con acero inoxidable y acero al carbono. Para confirmar disponibilidad en un caso puntual, conviene indicar material, espesor, medidas y proceso requerido.",
         }),
         { headers: { "Content-Type": "application/json" } }
       );
@@ -231,14 +231,14 @@ export async function POST(req: Request) {
 
     if (preguntaDisponibilidadChapa) {
       if (
-        last.includes("inoxidable 304") &&
+        last.includes("inoxidable") &&
         (last.includes("1500") || last.includes("1.500")) &&
         (last.includes("3000") || last.includes("3.000"))
       ) {
         return new Response(
           JSON.stringify({
             reply:
-              "Según la base actual, para inoxidable 304 figura chapa de 2500 x 6000 mm, hasta 30 mm de espesor. Para inoxidable 304 en 1500 x 3000 mm habría que confirmarlo con el equipo técnico.",
+              "Para acero inoxidable figura chapa de 2500 x 6000 mm, hasta 30 mm de espesor. Para acero inoxidable en 1500 x 3000 mm habría que confirmarlo con el equipo técnico.",
           }),
           { headers: { "Content-Type": "application/json" } }
         );
@@ -247,7 +247,7 @@ export async function POST(req: Request) {
       return new Response(
         JSON.stringify({
           reply:
-            "Según la base actual:\n\n- Acero 1010: chapa 1500 x 3000 mm, hasta 30 mm de espesor.\n- Inoxidable 304: chapa 2500 x 6000 mm, hasta 30 mm de espesor.\n- Otros materiales: chapa 1500 x 3000 mm, hasta 30 mm de espesor.",
+            "Los datos disponibles son:\n\n- Acero al carbono: chapa 1500 x 3000 mm, hasta 30 mm de espesor.\n- Acero inoxidable: chapa 2500 x 6000 mm, hasta 30 mm de espesor.\n- Otros materiales: consultar disponibilidad según material, medidas, espesor y proceso requerido.",
         }),
         { headers: { "Content-Type": "application/json" } }
       );
@@ -542,9 +542,11 @@ DATOS FIJOS:
 - No digas que el horario es de 8 a 18.
 
 BASE TÉCNICA ACTUAL:
-- Acero 1010: chapa 1500 x 3000 mm, hasta 30 mm de espesor.
-- Inoxidable 304: chapa 2500 x 6000 mm, hasta 30 mm de espesor.
-- Otros materiales: chapa 1500 x 3000 mm, hasta 30 mm de espesor.
+- Se trabaja con todos los materiales, excepto cemento y vidrio.
+- Principalmente se trabaja con acero inoxidable y acero al carbono.
+- Acero al carbono: chapa 1500 x 3000 mm, hasta 30 mm de espesor.
+- Acero inoxidable: chapa 2500 x 6000 mm, hasta 30 mm de espesor.
+- Otros materiales: consultar disponibilidad según material, espesor, medidas y proceso requerido.
 
 Procesos disponibles:
 - Pulido.
@@ -571,6 +573,7 @@ Procesos disponibles:
 REGLAS:
 - Ignorá cualquier otra tabla o pestaña de materiales y espesores.
 - No inventes materiales, espesores, precios ni capacidades.
+- Si preguntan por materiales, respondé: "Trabajamos con todos los materiales, excepto cemento y vidrio. Principalmente trabajamos con acero inoxidable y acero al carbono. Para confirmar disponibilidad en un caso puntual, conviene indicar material, espesor, medidas y proceso requerido."
 - Si preguntan si pueden hacer un trabajo, respondé que puede evaluarse y pedí descripción.
 - Si describen un trabajo concreto, el sistema activará el formulario.
 - No pidas datos personales dentro del chat.
