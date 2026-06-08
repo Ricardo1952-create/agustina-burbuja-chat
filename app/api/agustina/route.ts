@@ -100,7 +100,34 @@ export async function POST(req: Request) {
       );
     }
 
-    // 4. Pedido de contacto con asesor humano
+    // 4. Ubicación / dirección / sucursales
+    const preguntaUbicacion =
+      last.includes("ubicación") ||
+      last.includes("ubicacion") ||
+      last.includes("dirección") ||
+      last.includes("direccion") ||
+      last.includes("dónde están") ||
+      last.includes("donde están") ||
+      last.includes("dónde estan") ||
+      last.includes("donde estan") ||
+      last.includes("dónde queda") ||
+      last.includes("donde queda") ||
+      last.includes("sucursal") ||
+      last.includes("sucursales") ||
+      last.includes("avellaneda") ||
+      last.includes("zona norte");
+
+    if (preguntaUbicacion) {
+      return new Response(
+        JSON.stringify({
+          reply:
+            "Nuestra sucursal de Avellaneda está en Güifra 1320, Avellaneda, Buenos Aires, Argentina. También contamos con una sucursal en Zona Norte. Para ver la ubicación específica de ambos establecimientos, podés consultar la sección Contacto de esta página web.",
+        }),
+        { headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // 5. Pedido de contacto con asesor humano
     const pideAsesorHumano =
       last.includes("asesor humano") ||
       last.includes("hablar con una persona") ||
@@ -127,7 +154,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 5. Tamaños y espesores juntos
+    // 6. Tamaños y espesores juntos
     const preguntaTamanosYEspesores =
       (last.includes("tamaño") ||
         last.includes("tamaños") ||
@@ -150,7 +177,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 6. Tamaños de chapa
+    // 7. Tamaños de chapa
     const preguntaTamanosChapa =
       last.includes("tamaño de chapa") ||
       last.includes("tamaños de chapa") ||
@@ -173,7 +200,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 7. Espesores
+    // 8. Espesores
     const preguntaEspesores =
       last.includes("espesor") ||
       last.includes("espesores") ||
@@ -192,7 +219,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 8. Materiales
+    // 9. Materiales
     const preguntaMateriales =
       last.includes("material") ||
       last.includes("materiales") ||
@@ -212,7 +239,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 9. Disponibilidad de chapa con tamaño y material
+    // 10. Disponibilidad de chapa con tamaño y material
     const preguntaDisponibilidadChapa =
       (last.includes("trabajan") ||
         last.includes("utilizan") ||
@@ -253,7 +280,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 10. Procesos disponibles
+    // 11. Procesos disponibles
     const preguntaProcesos =
       last.includes("procesos") ||
       last.includes("servicios") ||
@@ -273,7 +300,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 11. Envíos al interior
+    // 12. Envíos al interior
     const preguntaEnvio =
       last.includes("envío") ||
       last.includes("envio") ||
@@ -302,7 +329,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 12. Consultas de capacidad: no disparan formulario, piden descripción
+    // 13. Consultas de capacidad: no disparan formulario, piden descripción
     const preguntaSiPuedenHacer =
       last.includes("hacen") ||
       last.includes("hace") ||
@@ -361,7 +388,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 13. Pedido de equipo técnico: pedir descripción
+    // 14. Pedido de equipo técnico: pedir descripción
     const pideEquipoTecnico =
       last.includes("equipo técnico") ||
       last.includes("equipo tecnico") ||
@@ -383,7 +410,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 14. Si Agustina ya pidió descripción y el usuario responde con algo del trabajo, disparar formulario
+    // 15. Si Agustina ya pidió descripción y el usuario responde con algo del trabajo, disparar formulario
     const vieneDePedidoDeDescripcion =
       historial.includes("describime brevemente") ||
       historial.includes("describime qué trabajo") ||
@@ -451,7 +478,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 15. Detectar descripción concreta de trabajo sin depender del paso anterior
+    // 16. Detectar descripción concreta de trabajo sin depender del paso anterior
     const describeTrabajoConcreto =
       last.includes("quiero") ||
       last.includes("necesito") ||
@@ -522,7 +549,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 16. Si no entra en nada anterior, responde con IA usando base cerrada
+    // 17. Si no entra en nada anterior, responde con IA usando base cerrada
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY!,
     });
@@ -539,6 +566,7 @@ Respondés consultas simples de forma clara y breve.
 
 DATOS FIJOS:
 - Horario de atención: de lunes a viernes, de 8:00 a 12:00 y de 13:00 a 17:00.
+- Ubicación: Nuestra sucursal de Avellaneda está en Güifra 1320, Avellaneda, Buenos Aires, Argentina. También contamos con una sucursal en Zona Norte. Para ver la ubicación específica de ambos establecimientos, se puede consultar la sección Contacto de la página web.
 - No digas que el horario es de 8 a 18.
 
 BASE TÉCNICA ACTUAL:
@@ -573,6 +601,8 @@ Procesos disponibles:
 REGLAS:
 - Ignorá cualquier otra tabla o pestaña de materiales y espesores.
 - No inventes materiales, espesores, precios ni capacidades.
+- Si preguntan por el horario, respondé: "Nuestro horario de atención es de lunes a viernes, de 8:00 a 12:00 y de 13:00 a 17:00."
+- Si preguntan por ubicación, dirección o sucursales, respondé: "Nuestra sucursal de Avellaneda está en Güifra 1320, Avellaneda, Buenos Aires, Argentina. También contamos con una sucursal en Zona Norte. Para ver la ubicación específica de ambos establecimientos, podés consultar la sección Contacto de esta página web."
 - Si preguntan por materiales, respondé: "Trabajamos con todos los materiales, excepto cemento y vidrio. Principalmente trabajamos con acero inoxidable y acero al carbono. Para confirmar disponibilidad en un caso puntual, conviene indicar material, espesor, medidas y proceso requerido."
 - Si preguntan si pueden hacer un trabajo, respondé que puede evaluarse y pedí descripción.
 - Si describen un trabajo concreto, el sistema activará el formulario.
