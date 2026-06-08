@@ -294,13 +294,29 @@ export async function POST(req: Request) {
       return new Response(
         JSON.stringify({
           reply:
-            "Los procesos disponibles son: pulido, arenado, flapeado, avellanado, biselado, corte láser, esmerilado, galvanizado, mecanizado, pintura, planchado, plegado, conformado, rolado, roscado, soldadura MIG, soldadura TIG, soldadura láser, soldadura a punto y zincado.",
+            "Los procesos disponibles son: pulido, arenado, flapeado, avellanado, biselado, corte láser, esmerilado, galvanizado, mecanizado, pintura, planchado, plegado, conformado, rolado, roscado, soldadura MIG, soldadura TIG, soldadura láser, soldadura a punto y zincado. No realizamos corte por plasma.",
         }),
         { headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // 12. Envíos al interior
+    // 12. Corte por plasma
+    const preguntaCortePlasma =
+      last.includes("plasma") ||
+      last.includes("corte por plasma") ||
+      last.includes("cortar por plasma");
+
+    if (preguntaCortePlasma) {
+      return new Response(
+        JSON.stringify({
+          reply:
+            "No realizamos corte por plasma. Actualmente trabajamos con corte láser.",
+        }),
+        { headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // 13. Envíos al interior
     const preguntaEnvio =
       last.includes("envío") ||
       last.includes("envio") ||
@@ -329,7 +345,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 13. Consultas de capacidad: no disparan formulario, piden descripción
+    // 14. Consultas de capacidad: no disparan formulario, piden descripción
     const preguntaSiPuedenHacer =
       last.includes("hacen") ||
       last.includes("hace") ||
@@ -388,7 +404,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 14. Pedido de equipo técnico: pedir descripción
+    // 15. Pedido de equipo técnico: pedir descripción
     const pideEquipoTecnico =
       last.includes("equipo técnico") ||
       last.includes("equipo tecnico") ||
@@ -410,7 +426,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 15. Si Agustina ya pidió descripción y el usuario responde con algo del trabajo, disparar formulario
+    // 16. Si Agustina ya pidió descripción y el usuario responde con algo del trabajo, disparar formulario
     const vieneDePedidoDeDescripcion =
       historial.includes("describime brevemente") ||
       historial.includes("describime qué trabajo") ||
@@ -478,7 +494,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 16. Detectar descripción concreta de trabajo sin depender del paso anterior
+    // 17. Detectar descripción concreta de trabajo sin depender del paso anterior
     const describeTrabajoConcreto =
       last.includes("quiero") ||
       last.includes("necesito") ||
@@ -549,7 +565,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 17. Si no entra en nada anterior, responde con IA usando base cerrada
+    // 18. Si no entra en nada anterior, responde con IA usando base cerrada
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY!,
     });
@@ -598,12 +614,16 @@ Procesos disponibles:
 - Soldadura a punto.
 - Zincado.
 
+Procesos no disponibles:
+- No se realiza corte por plasma.
+
 REGLAS:
 - Ignorá cualquier otra tabla o pestaña de materiales y espesores.
 - No inventes materiales, espesores, precios ni capacidades.
 - Si preguntan por el horario, respondé: "Nuestro horario de atención es de lunes a viernes, de 8:00 a 12:00 y de 13:00 a 17:00."
 - Si preguntan por ubicación, dirección o sucursales, respondé: "Estamos en la calle Guifra 1320, Avellaneda, Buenos Aires, Argentina. También contamos con una sucursal en Zona Norte. Para ver la ubicación específica de ambos establecimientos, podés consultar la sección Contacto de esta página web."
 - Si preguntan por materiales, respondé: "Trabajamos con todos los materiales, excepto cemento y vidrio. Principalmente trabajamos con acero inoxidable y acero al carbono. Para confirmar disponibilidad en un caso puntual, conviene indicar material, espesor, medidas y proceso requerido."
+- Si preguntan por corte por plasma, respondé: "No realizamos corte por plasma. Actualmente trabajamos con corte láser."
 - Si preguntan si pueden hacer un trabajo, respondé que puede evaluarse y pedí descripción.
 - Si describen un trabajo concreto, el sistema activará el formulario.
 - No pidas datos personales dentro del chat.
