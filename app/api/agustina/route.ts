@@ -121,7 +121,7 @@ export async function POST(req: Request) {
       return new Response(
         JSON.stringify({
           reply:
-            "Nuestra sucursal de Avellaneda está en Güifra 1320, Avellaneda, Buenos Aires, Argentina. También contamos con una sucursal en Zona Norte. Para ver la ubicación específica de ambos establecimientos, podés consultar la sección Contacto de esta página web.",
+            "Estamos en la calle Guifra 1320, Avellaneda, Buenos Aires, Argentina. También contamos con una sucursal en Zona Norte. Para ver la ubicación específica de ambos establecimientos, podés consultar la sección Contacto de esta página web.",
         }),
         { headers: { "Content-Type": "application/json" } }
       );
@@ -566,7 +566,7 @@ Respondés consultas simples de forma clara y breve.
 
 DATOS FIJOS:
 - Horario de atención: de lunes a viernes, de 8:00 a 12:00 y de 13:00 a 17:00.
-- Ubicación: Nuestra sucursal de Avellaneda está en Güifra 1320, Avellaneda, Buenos Aires, Argentina. También contamos con una sucursal en Zona Norte. Para ver la ubicación específica de ambos establecimientos, se puede consultar la sección Contacto de la página web.
+- Ubicación: Estamos en la calle Guifra 1320, Avellaneda, Buenos Aires, Argentina. También contamos con una sucursal en Zona Norte. Para ver la ubicación específica de ambos establecimientos, se puede consultar la sección Contacto de la página web.
 - No digas que el horario es de 8 a 18.
 
 BASE TÉCNICA ACTUAL:
@@ -602,7 +602,7 @@ REGLAS:
 - Ignorá cualquier otra tabla o pestaña de materiales y espesores.
 - No inventes materiales, espesores, precios ni capacidades.
 - Si preguntan por el horario, respondé: "Nuestro horario de atención es de lunes a viernes, de 8:00 a 12:00 y de 13:00 a 17:00."
-- Si preguntan por ubicación, dirección o sucursales, respondé: "Nuestra sucursal de Avellaneda está en Güifra 1320, Avellaneda, Buenos Aires, Argentina. También contamos con una sucursal en Zona Norte. Para ver la ubicación específica de ambos establecimientos, podés consultar la sección Contacto de esta página web."
+- Si preguntan por ubicación, dirección o sucursales, respondé: "Estamos en la calle Guifra 1320, Avellaneda, Buenos Aires, Argentina. También contamos con una sucursal en Zona Norte. Para ver la ubicación específica de ambos establecimientos, podés consultar la sección Contacto de esta página web."
 - Si preguntan por materiales, respondé: "Trabajamos con todos los materiales, excepto cemento y vidrio. Principalmente trabajamos con acero inoxidable y acero al carbono. Para confirmar disponibilidad en un caso puntual, conviene indicar material, espesor, medidas y proceso requerido."
 - Si preguntan si pueden hacer un trabajo, respondé que puede evaluarse y pedí descripción.
 - Si describen un trabajo concreto, el sistema activará el formulario.
