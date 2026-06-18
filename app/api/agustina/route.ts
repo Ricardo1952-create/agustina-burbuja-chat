@@ -5,7 +5,16 @@ const WEBHOOK =
 
 export async function POST(req: Request) {
   try {
-    const { messages } = await req.json();
+    const body = await req.json();
+
+    const messages = Array.isArray(body.messages)
+      ? body.messages
+      : [
+          {
+            role: "user",
+            content: body.message || "",
+          },
+        ];
 
     const lastMessage = messages[messages.length - 1]?.content || "";
     const last = lastMessage.toLowerCase();
@@ -19,23 +28,38 @@ export async function POST(req: Request) {
     try {
       const posibleJSON = JSON.parse(lastMessage);
 
-      if (
-        posibleJSON.empresa &&
-        posibleJSON.nombre &&
-        posibleJSON.whatsapp &&
-        posibleJSON.detalle
-      ) {
+      const empresa = posibleJSON.empresa || "";
+      const nombre = posibleJSON.nombre || "";
+      const cuit = posibleJSON.cuit || "";
+      const telefono = posibleJSON.telefono || posibleJSON.whatsapp || "";
+      const email = posibleJSON.email || "";
+      const descripcion = posibleJSON.descripcion || posibleJSON.detalle || "";
+
+      const cuitLimpio = String(cuit).replace(/\D/g, "");
+
+      if (empresa && nombre && cuit && (telefono || email) && descripcion) {
+        if (cuitLimpio.length !== 11) {
+          return new Response(
+            JSON.stringify({
+              reply:
+                "Para poder avanzar con la cotización necesitamos un CUIT válido de 11 dígitos.",
+            }),
+            { headers: { "Content-Type": "application/json" } }
+          );
+        }
+
         const respuestaWebhook = await fetch(WEBHOOK, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            empresa: posibleJSON.empresa || "",
-            nombre: posibleJSON.nombre || "",
-            telefono: posibleJSON.whatsapp || "",
-            email: "",
-            descripcion: posibleJSON.detalle || "",
+            empresa,
+            nombre,
+            cuit,
+            telefono,
+            email,
+            descripcion,
           }),
         });
 
@@ -78,7 +102,10 @@ export async function POST(req: Request) {
       last.includes("costo") ||
       last.includes("valor") ||
       last.includes("cuánto sale") ||
-      last.includes("cuanto sale");
+      last.includes("cuanto sale") ||
+      last.includes("completar formulario") ||
+      last.includes("formulario de cotización") ||
+      last.includes("formulario de cotizacion");
 
     // 3. Horario de atención
     const preguntaHorario =
@@ -203,7 +230,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 6. Tamaños y espesores juntos
+    // 7. Tamaños y espesores juntos
     const preguntaTamanosYEspesores =
       (last.includes("tamaño") ||
         last.includes("tamaños") ||
@@ -226,7 +253,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 7. Tamaños de chapa
+    // 8. Tamaños de chapa
     const preguntaTamanosChapa =
       last.includes("tamaño de chapa") ||
       last.includes("tamaños de chapa") ||
@@ -249,7 +276,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 8. Espesores
+    // 9. Espesores
     const preguntaEspesores =
       last.includes("espesor") ||
       last.includes("espesores") ||
@@ -268,7 +295,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 9. Materiales
+    // 10. Materiales
     const preguntaMateriales =
       last.includes("material") ||
       last.includes("materiales") ||
@@ -288,7 +315,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 10. Disponibilidad de chapa con tamaño y material
+    // 11. Disponibilidad de chapa con tamaño y material
     const preguntaDisponibilidadChapa =
       (last.includes("trabajan") ||
         last.includes("utilizan") ||
@@ -329,7 +356,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 11. Procesos disponibles
+    // 12. Procesos disponibles
     const preguntaProcesos =
       last.includes("procesos") ||
       last.includes("servicios") ||
@@ -349,7 +376,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 12. Corte por plasma
+    // 13. Corte por plasma
     const preguntaCortePlasma =
       last.includes("plasma") ||
       last.includes("corte por plasma") ||
@@ -365,7 +392,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 13. Envíos al interior
+    // 14. Envíos al interior
     const preguntaEnvio =
       last.includes("envío") ||
       last.includes("envio") ||
@@ -394,7 +421,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 14. Consultas de capacidad: no disparan formulario, piden descripción
+    // 15. Consultas de capacidad: no disparan formulario, piden descripción
     const preguntaSiPuedenHacer =
       last.includes("hacen") ||
       last.includes("hace") ||
@@ -453,7 +480,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 15. Pedido de equipo técnico: pedir descripción
+    // 16. Pedido de equipo técnico: pedir descripción
     const pideEquipoTecnico =
       last.includes("equipo técnico") ||
       last.includes("equipo tecnico") ||
@@ -475,7 +502,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 16. Si Agustina ya pidió descripción y el usuario responde con algo del trabajo, disparar formulario
+    // 17. Si Agustina ya pidió descripción y el usuario responde con algo del trabajo, disparar formulario
     const vieneDePedidoDeDescripcion =
       historial.includes("describime brevemente") ||
       historial.includes("describime qué trabajo") ||
@@ -537,13 +564,13 @@ export async function POST(req: Request) {
         JSON.stringify({
           showForm: true,
           reply:
-            "[FORMULARIO]\nPerfecto 👍 Para que un especialista revise tu consulta y pueda responderte correctamente, completá el siguiente formulario.",
+            "[FORMULARIO]\nPerfecto 👍 Para que un especialista revise tu consulta y pueda responderte correctamente, completá el siguiente formulario. Recordá que para cotizar es necesario informar el CUIT de la empresa.",
         }),
         { headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // 17. Detectar descripción concreta de trabajo sin depender del paso anterior
+    // 18. Detectar descripción concreta de trabajo sin depender del paso anterior
     const describeTrabajoConcreto =
       last.includes("quiero") ||
       last.includes("necesito") ||
@@ -608,13 +635,13 @@ export async function POST(req: Request) {
         JSON.stringify({
           showForm: true,
           reply:
-            "[FORMULARIO]\nPerfecto 👍 Para que un especialista revise tu consulta y pueda responderte correctamente, completá el siguiente formulario.",
+            "[FORMULARIO]\nPerfecto 👍 Para que un especialista revise tu consulta y pueda responderte correctamente, completá el siguiente formulario. Recordá que para cotizar es necesario informar el CUIT de la empresa.",
         }),
         { headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // 18. Si no entra en nada anterior, responde con IA usando base cerrada
+    // 19. Si no entra en nada anterior, responde con IA usando base cerrada
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY!,
     });
@@ -677,6 +704,7 @@ REGLAS:
 - Si describen un trabajo concreto, el sistema activará el formulario.
 - No pidas datos personales dentro del chat.
 - No menciones formularios por tu cuenta.
+- Para poder cotizar, el formulario debe solicitar CUIT de la empresa.
 - Si el usuario pide hablar con un asesor humano, respondé: "Sí, podés comunicarte con un asesor humano. Para atención directa, hacé clic en la burbuja de WhatsApp que aparece en esta misma página web. Nuestro horario de atención es de lunes a viernes de 8:00 a 17:00."
 - Si el usuario consulta por el estado de un trabajo en proceso, fecha estimada de entrega, avance de producción, retiro de piezas, demora, pedido ya realizado, presupuesto aprobado o cualquier información relacionada con un trabajo específico ya encargado, no inventes fechas, estados de avance ni compromisos de entrega.
 - Para consultas sobre trabajos en proceso, respondé: "Entiendo. Para consultas sobre un trabajo que ya está en proceso, como fecha de entrega, avance, retiro o estado del pedido, te pido que te comuniques directamente por WhatsApp en horario de atención, de lunes a viernes de 8:00 a 17:00 hs. Así pueden verificar el estado real del trabajo y darte una respuesta precisa."
