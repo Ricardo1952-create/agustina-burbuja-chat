@@ -17,6 +17,7 @@ export default function Page() {
 
   const [form, setForm] = useState({
     empresa: "",
+    cuit: "",
     nombre: "",
     whatsapp: "",
     detalle: "",
@@ -67,7 +68,39 @@ export default function Page() {
   };
 
   const enviarFormulario = async () => {
-    await fetch("/api/agustina", {
+    const cuitLimpio = form.cuit.replace(/\D/g, "");
+
+    if (!form.empresa.trim()) {
+      alert("Por favor ingresá la empresa.");
+      return;
+    }
+
+    if (!form.cuit.trim()) {
+      alert("Para poder avanzar con la cotización necesitamos el CUIT de la empresa.");
+      return;
+    }
+
+    if (cuitLimpio.length !== 11) {
+      alert("Ingresá un CUIT válido de 11 dígitos.");
+      return;
+    }
+
+    if (!form.nombre.trim()) {
+      alert("Por favor ingresá tu nombre.");
+      return;
+    }
+
+    if (!form.whatsapp.trim()) {
+      alert("Por favor ingresá un WhatsApp de contacto.");
+      return;
+    }
+
+    if (!form.detalle.trim()) {
+      alert("Por favor ingresá el detalle del trabajo.");
+      return;
+    }
+
+    const res = await fetch("/api/agustina", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -82,6 +115,8 @@ export default function Page() {
       }),
     });
 
+    const data = await res.json();
+
     setMostrarFormulario(false);
     setFormularioAbierto(false);
 
@@ -90,12 +125,14 @@ export default function Page() {
       {
         role: "assistant",
         content:
-         "Perfecto 👍 Ya registramos tu solicitud. Un asesor revisará tu consulta y se comunicará con vos dentro de nuestro horario de atención, de lunes a viernes de 8 a 17 hs.",
+          data.reply ||
+          "Perfecto 👍 Ya registramos tu solicitud. Un asesor revisará tu consulta y se comunicará con vos dentro de nuestro horario de atención, de lunes a viernes de 8 a 17 hs.",
       },
     ]);
 
     setForm({
       empresa: "",
+      cuit: "",
       nombre: "",
       whatsapp: "",
       detalle: "",
@@ -195,6 +232,15 @@ export default function Page() {
             value={form.empresa}
             onChange={(e) =>
               setForm({ ...form, empresa: e.target.value })
+            }
+            style={{ width: "100%", marginBottom: 10, padding: 8 }}
+          />
+
+          <input
+            placeholder="CUIT de la empresa"
+            value={form.cuit}
+            onChange={(e) =>
+              setForm({ ...form, cuit: e.target.value })
             }
             style={{ width: "100%", marginBottom: 10, padding: 8 }}
           />
