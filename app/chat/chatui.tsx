@@ -187,21 +187,60 @@ export default function ChatUI() {
                 <b>Completar datos</b>
 
                 <input id="empresa" placeholder="Empresa" style={inputStyle} />
+                <input id="cuit" placeholder="CUIT de la empresa" style={inputStyle} />
                 <input id="nombre" placeholder="Nombre" style={inputStyle} />
                 <input id="contacto" placeholder="Teléfono o email" style={inputStyle} />
-                <textarea id="detalle" placeholder="Detalle" style={inputStyle} />
+                <textarea id="detalle" placeholder="Detalle del trabajo" style={inputStyle} />
 
                 <button
                   onClick={async () => {
-                    const contacto = (document.getElementById("contacto") as HTMLInputElement).value;
+                    const empresa = (document.getElementById("empresa") as HTMLInputElement).value.trim();
+                    const cuit = (document.getElementById("cuit") as HTMLInputElement).value.trim();
+                    const nombre = (document.getElementById("nombre") as HTMLInputElement).value.trim();
+                    const contacto = (document.getElementById("contacto") as HTMLInputElement).value.trim();
+                    const descripcion = (document.getElementById("detalle") as HTMLTextAreaElement).value.trim();
+
+                    const cuitLimpio = cuit.replace(/\D/g, "");
+
+                    if (!empresa) {
+                      alert("Por favor ingresá la empresa.");
+                      return;
+                    }
+
+                    if (!cuit) {
+                      alert("Para poder avanzar con la cotización necesitamos el CUIT de la empresa.");
+                      return;
+                    }
+
+                    if (cuitLimpio.length !== 11) {
+                      alert("Ingresá un CUIT válido de 11 dígitos.");
+                      return;
+                    }
+
+                    if (!nombre) {
+                      alert("Por favor ingresá tu nombre.");
+                      return;
+                    }
+
+                    if (!contacto) {
+                      alert("Por favor ingresá un teléfono o email de contacto.");
+                      return;
+                    }
+
+                    if (!descripcion) {
+                      alert("Por favor ingresá el detalle del trabajo a cotizar.");
+                      return;
+                    }
+
                     const esEmail = contacto.includes("@");
 
                     const formData = {
-                      empresa: (document.getElementById("empresa") as HTMLInputElement).value,
-                      nombre: (document.getElementById("nombre") as HTMLInputElement).value,
+                      empresa: empresa,
+                      cuit: cuit,
+                      nombre: nombre,
                       email: esEmail ? contacto : "",
                       telefono: esEmail ? "" : contacto,
-                      descripcion: (document.getElementById("detalle") as HTMLTextAreaElement).value,
+                      descripcion: descripcion,
                     };
 
                     await fetch("https://script.google.com/macros/s/AKfycbxJ4ZFemcLehp14FTYLgp0frs72utzPxXhxrxxnuhCgzJH-fTCiHtJqQJd5P788_f6yIw/exec", {
