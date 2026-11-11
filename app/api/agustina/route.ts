@@ -3,6 +3,10 @@ import OpenAI from "openai";
 const WEBHOOK =
   "https://script.google.com/macros/s/AKfycbzP9DkhB-y7yfA6zUXomXyKckQBHShSPjj4ommedwR-7Twf8RZgKNS8kfT-JRj2_kzP7A/exec";
 
+// Conservar el destino original del formulario secundario.
+const SECONDARY_WEBHOOK =
+  "https://script.google.com/macros/s/AKfycbxJ4ZFemcLehp14FTYLgp0frs72utzPxXhxrxxnuhCgzJH-fTCiHtJqQJd5P788_f6yIw/exec";
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -58,7 +62,8 @@ export async function POST(req: Request) {
           );
         }
 
-        const respuestaWebhook = await fetch(WEBHOOK, {
+        const destino = body.source === "chat-secondary" ? SECONDARY_WEBHOOK : WEBHOOK;
+        const respuestaWebhook = await fetch(destino, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
