@@ -48,6 +48,16 @@ export async function POST(req: Request) {
           );
         }
 
+        // En despliegues Preview, los formularios nunca se envían a la planilla real.
+        if (process.env.VERCEL_ENV !== "production") {
+          return new Response(
+            JSON.stringify({
+              reply: "PRUEBA: formulario validado correctamente. No se guardó ningún dato ni se envió información al cliente.",
+            }),
+            { headers: { "Content-Type": "application/json" } }
+          );
+        }
+
         const respuestaWebhook = await fetch(WEBHOOK, {
           method: "POST",
           headers: {
