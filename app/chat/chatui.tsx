@@ -246,7 +246,7 @@ export default function ChatUI() {
                     const res = await fetch("/api/agustina", {
                        method: "POST",
                        headers: { "Content-Type": "application/json" },
-                       body: JSON.stringify({ message: JSON.stringify(formData) }),
+                       body: JSON.stringify({ message: JSON.stringify(formData), source: "chat-secondary" }),
                      });
                      if (!res.ok) {
                        alert("No se pudo procesar el formulario. Intentá nuevamente.");
