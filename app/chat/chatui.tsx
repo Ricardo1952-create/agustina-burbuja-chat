@@ -243,13 +243,21 @@ export default function ChatUI() {
                       descripcion: descripcion,
                     };
 
-                    await fetch("https://script.google.com/macros/s/AKfycbxJ4ZFemcLehp14FTYLgp0frs72utzPxXhxrxxnuhCgzJH-fTCiHtJqQJd5P788_f6yIw/exec", {
-                      method: "POST",
-                      mode: "no-cors",
-                      body: JSON.stringify(formData),
-                    });
-
-                    alert("Datos enviados");
+                    const res = await fetch("/api/agustina", {
+                       method: "POST",
+                       headers: { "Content-Type": "application/json" },
+                       body: JSON.stringify({ message: JSON.stringify(formData) }),
+                     });
+                     if (!res.ok) {
+                       alert("No se pudo procesar el formulario. Intentá nuevamente.");
+                       return;
+                     }
+                     const data = await res.json();
+                     if (!data.reply || /problema|error en el servidor/i.test(data.reply)) {
+                       alert(data.reply || "No se pudo procesar el formulario.");
+                       return;
+                     }
+                     alert(data.reply);
 
                     setShowForm(false);
                     setFormOpen(false);
@@ -257,7 +265,7 @@ export default function ChatUI() {
                     setMessages([
                       {
                         who: "SISTEMA",
-                        text: "Gracias, recibimos tus datos. Un vendedor se va a contactar con vos.\n\n¿Te puedo ayudar con algo más?",
+                        text: data.reply,
                       },
                     ]);
                   }}
