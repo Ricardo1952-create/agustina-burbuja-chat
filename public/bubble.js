@@ -2,6 +2,11 @@
 
   const WEBHOOK = "https://script.google.com/macros/s/AKfycbyduzeGP4h0fsGQzHnWQtCmXQs7R9HhAjEQNdDgwjrNWEy2gUIupsv5SD9J0xN3nD5h/exec";
 
+  // El origen del archivo determina si estamos en un despliegue Preview.
+  // No depende del dominio de la página que incorpora la burbuja.
+  const scriptHost = new URL(document.currentScript?.src || window.location.href).hostname;
+  const esPreview = scriptHost.endsWith(".vercel.app") && scriptHost !== "agustina-burbuja-chat-main.vercel.app";
+
   const bubble = document.createElement("div");
   bubble.innerHTML = "💬";
   bubble.style.position = "fixed";
@@ -115,6 +120,12 @@
         const nombre = form.querySelector("#nombre").value;
         const contacto = form.querySelector("#contacto").value;
         const necesidad = form.querySelector("#necesidad").value;
+
+        // En Preview nunca llamamos a Google Apps Script: ni planilla ni correo.
+        if (esPreview) {
+          addBot("PRUEBA: prospecto simulado. No se enviaron datos a Google Sheets ni se generó ningún correo.");
+          return;
+        }
 
         const url = WEBHOOK +
           "?empresa=" + encodeURIComponent(empresa) +
