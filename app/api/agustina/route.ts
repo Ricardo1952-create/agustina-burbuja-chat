@@ -66,7 +66,7 @@ export async function POST(req: Request) {
               url.hostname === "script.google.com" &&
               /^\/macros\/s\/[^/]+\/exec$/.test(url.pathname);
           } catch { /* Sin URL válida: nunca enviar */ }
-          if (!allowedUrl || !sharedSecret || sharedSecret.length < 32) {
+          if (!testWebhook || !allowedUrl || !sharedSecret || sharedSecret.length < 32) {
             return Response.json({
               reply: "PRUEBA: formulario validado. Ensayo de registro y correo pendiente de configurar; no se envió información.",
             });
