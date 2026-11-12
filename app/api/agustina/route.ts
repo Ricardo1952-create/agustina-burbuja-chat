@@ -5,6 +5,12 @@ const WEBHOOK =
 
 export async function POST(req: Request) {
   try {
+    // Protección absoluta de esta rama de ENSAYO: incluso si se despliega por error
+    // como Production, no debe aceptar prospectos ni llamar al webhook comercial.
+    if (process.env.VERCEL_ENV === "production") {
+      return Response.json({ reply: "Rama de ensayo: no habilitada para producción." }, { status: 503 });
+    }
+
     const body = await req.json();
 
     const messages = Array.isArray(body.messages)
