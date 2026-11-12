@@ -48,14 +48,36 @@ export async function POST(req: Request) {
           );
         }
 
-        // En Preview, validar el formulario sin registrar ni notificar prospectos reales.
+        // Rama exclusiva de integración: jamás publicar a producción.
+        // Preview falla de forma segura hasta que exista un webhook de prueba aislado.
         if (process.env.VERCEL_ENV !== "production") {
-          return new Response(
-            JSON.stringify({
-              reply: "PRUEBA: formulario validado correctamente. No se guardó ningún dato ni se envió información al cliente.",
-            }),
-            { headers: { "Content-Type": "application/json" } }
-          );
+          const testWebhook = process.env.AGUSTINA_TEST_WEBHOOK_URL;
+          if (!testWebhook || !testWebhook.startsWith("https://script.google.com/macros/s/")) {
+            return Response.json({
+              reply: "PRUEBA: formulario validado. Ensayo de registro y correo pendiente de configurar; no se envió información.",
+            });
+          }
+
+          try {
+            const testResponse = await fetch(testWebhook, {
+              method: "POST",
+              headers: { "Content-Type": "text/plain;charset=utf-8" },
+              body: JSON.stringify({
+                empresa, nombre, cuit, telefono, email, descripcion,
+                prueba: "AGUSTINA-WEB-ENSAYO-2027"
+              }),
+              redirect: "follow",
+            });
+            const resultText = await testResponse.text();
+            if (!testResponse.ok || !resultText.trim().startsWith("PRUEBA_OK")) {
+              return Response.json({ reply: "PRUEBA: el sistema de ensayo no confirmó el registro y el correo. Revisar Google Apps Script." });
+            }
+            return Response.json({
+              reply: "PRUEBA: el sistema aislado confirmó recepción y solicitó guardar el prospecto y enviar el correo de ensayo. Verificar la fila y el mensaje recibido.",
+            });
+          } catch {
+            return Response.json({ reply: "PRUEBA: falló la conexión con el sistema aislado. No se llamó al circuito comercial." });
+          }
         }
 
         const respuestaWebhook = await fetch(WEBHOOK, {
