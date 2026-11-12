@@ -58,7 +58,15 @@ export async function POST(req: Request) {
         // Preview falla de forma segura hasta que exista un webhook de prueba aislado.
         if (process.env.VERCEL_ENV !== "production") {
           const testWebhook = process.env.AGUSTINA_TEST_WEBHOOK_URL;
-          if (!testWebhook || !testWebhook.startsWith("https://script.google.com/macros/s/")) {
+          const sharedSecret = process.env.AGUSTINA_TEST_SHARED_SECRET;
+          let allowedUrl = false;
+          try {
+            const url = new URL(testWebhook || "");
+            allowedUrl = url.protocol === "https:" &&
+              url.hostname === "script.google.com" &&
+              /^\/macros\/s\/[^/]+\/exec$/.test(url.pathname);
+          } catch { /* Sin URL válida: nunca enviar */ }
+          if (!allowedUrl || !sharedSecret || sharedSecret.length < 32) {
             return Response.json({
               reply: "PRUEBA: formulario validado. Ensayo de registro y correo pendiente de configurar; no se envió información.",
             });
@@ -70,7 +78,9 @@ export async function POST(req: Request) {
               headers: { "Content-Type": "text/plain;charset=utf-8" },
               body: JSON.stringify({
                 empresa, nombre, cuit, telefono, email, descripcion,
-                prueba: "AGUSTINA-WEB-ENSAYO-2027"
+                prueba: "AGUSTINA-WEB-ENSAYO-2027",
+                secret: sharedSecret,
+                requestId: crypto.randomUUID()
               }),
               redirect: "follow",
             });
