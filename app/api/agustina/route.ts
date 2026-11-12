@@ -48,6 +48,16 @@ export async function POST(req: Request) {
           );
         }
 
+        // En Preview, validar el formulario sin registrar ni notificar prospectos reales.
+        if (process.env.VERCEL_ENV !== "production") {
+          return new Response(
+            JSON.stringify({
+              reply: "PRUEBA: formulario validado correctamente. No se guardó ningún dato ni se envió información al cliente.",
+            }),
+            { headers: { "Content-Type": "application/json" } }
+          );
+        }
+
         const respuestaWebhook = await fetch(WEBHOOK, {
           method: "POST",
           headers: {
@@ -243,7 +253,7 @@ export async function POST(req: Request) {
         last.includes("grosor") ||
         last.includes("grosores"));
 
-    if (preguntaTamanosYEspesores) {
+    if (preguntaTamanosYEspesores && !pidePresupuesto) {
       return new Response(
         JSON.stringify({
           reply:
@@ -266,7 +276,7 @@ export async function POST(req: Request) {
       last.includes("qué tamaños de chapa") ||
       last.includes("que tamaños de chapa");
 
-    if (preguntaTamanosChapa) {
+    if (preguntaTamanosChapa && !pidePresupuesto) {
       return new Response(
         JSON.stringify({
           reply:
@@ -285,7 +295,7 @@ export async function POST(req: Request) {
       last.includes("hasta qué espesor") ||
       last.includes("hasta que espesor");
 
-    if (preguntaEspesores) {
+    if (preguntaEspesores && !pidePresupuesto) {
       return new Response(
         JSON.stringify({
           reply:
@@ -305,7 +315,7 @@ export async function POST(req: Request) {
       last.includes("trabajan acero") ||
       last.includes("trabajan aluminio");
 
-    if (preguntaMateriales) {
+    if (preguntaMateriales && !pidePresupuesto) {
       return new Response(
         JSON.stringify({
           reply:
@@ -332,7 +342,7 @@ export async function POST(req: Request) {
         last.includes("6000") ||
         last.includes("6.000"));
 
-    if (preguntaDisponibilidadChapa) {
+    if (preguntaDisponibilidadChapa && !pidePresupuesto) {
       if (
         last.includes("inoxidable") &&
         (last.includes("1500") || last.includes("1.500")) &&
@@ -366,7 +376,7 @@ export async function POST(req: Request) {
       last.includes("que trabajos hacen") ||
       last.includes("capacidades");
 
-    if (preguntaProcesos) {
+    if (preguntaProcesos && !pidePresupuesto) {
       return new Response(
         JSON.stringify({
           reply:
@@ -647,7 +657,7 @@ export async function POST(req: Request) {
     });
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-6-luna",
       messages: [
         {
           role: "system",
